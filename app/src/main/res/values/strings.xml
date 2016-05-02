@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">FirebaseVerticalPrototype</string>
+    <string name="passwordHintText">Password</string>
+    <string name="emailHintText">Email</string>
+    <string name="signUpButtonLabel">Sign Up</string>
+    <string name="loginButtonLabel">Login</string>
+    <string name="signUpTextLabel">Sign Up!</string>
+    <string name="logout">Logout</string>
+    <string name="welcomeText">Welcome to <b>Straightline</b>, the app for skiers and snowboarders on the mountain. If you have an account with us already please sign in otherwise hit the <b>Sign Up</b> link below.</string>
+    <string name="signUpText">Sign up here to start your <b>Straightline</b> experience!</string>
+</resources>

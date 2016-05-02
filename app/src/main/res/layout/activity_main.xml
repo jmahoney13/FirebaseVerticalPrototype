@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context="edu.calpoly.jwmahone.firebaseverticalprototype.MainActivity">
+
+    <TextView android:id="@+id/mainActWelcome"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="20dp"
+        android:text="WECLOME TO THE MAIN ACTIVITY OF THIS APP"/>
+
+    <Button android:id="@+id/submitLineButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Submit Line"
+        android:layout_below="@+id/mainActWelcome"
+        android:layout_marginBottom="20dp"/>
+
+    <EditText android:id="@+id/lineEditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/submitLineButton"
+        android:layout_marginBottom="20dp"
+        android:hint="Enter your post here">
+        <requestFocus/>
+    </EditText>
+
+    <Button android:id="@+id/getLineButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Get Line"
+        android:layout_marginBottom="20dp"
+        android:layout_below="@+id/lineEditText"/>
+
+    <TextView android:id="@+id/receivedPostTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/getLineButton"/>
+
+</RelativeLayout>
