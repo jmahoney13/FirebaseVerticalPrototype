@@ -20,9 +20,8 @@ import com.firebase.client.Query;
 import com.firebase.client.ValueEventListener;
 
 
-//test github comment!!!
-
 public class MainActivity extends AppCompatActivity {
+    public int test = 1;
     public static final String FIREBASEURL = "https://popping-inferno-9423.firebaseio.com/";
     private Firebase fireRoot;
     private Button addLineButton;
