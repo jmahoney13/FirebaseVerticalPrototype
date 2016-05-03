@@ -1,5 +1,7 @@
 package edu.calpoly.jwmahone.firebaseverticalprototype;
 
+import com.firebase.client.Firebase;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,6 +11,7 @@ public class MountainPost {
     //private ArrayList<String> comments;
     private List<String> comments;
     private int likes;
+    private String key;
 
     public MountainPost() {
 
@@ -19,6 +22,15 @@ public class MountainPost {
         this.author = author;
         this.comments = new ArrayList<>();
         this.likes = 0;
+        this.key = "";
+    }
+
+    public String getPostKey() {
+        return this.key;
+    }
+
+    public void setPostKey(String key) {
+        this.key = key;
     }
 
     public String getLine() {
@@ -51,6 +63,10 @@ public class MountainPost {
 
     public void addComment(String comment) {
         this.comments.add(comment);
+    }
+
+    public List<String> getComments() {
+        return this.comments;
     }
 
     public boolean equals(Object o) {

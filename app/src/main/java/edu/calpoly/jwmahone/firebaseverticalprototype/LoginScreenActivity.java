@@ -12,9 +12,6 @@ import com.firebase.client.AuthData;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class LoginScreenActivity extends AppCompatActivity {
 
     private Button loginButton;
@@ -51,10 +48,6 @@ public class LoginScreenActivity extends AppCompatActivity {
                 fireRoot.authWithPassword(emailAddr, password, new Firebase.AuthResultHandler() {
                     @Override
                     public void onAuthenticated(AuthData authData) {
-                        Map<String, String> emailMap = new HashMap<>();
-                        emailMap.put("email", emailAddr);
-                        fireRoot.child("users").child(authData.getUid()).setValue(emailMap);
-
                         Intent intent = new Intent(LoginScreenActivity.this, MainActivity.class);
                         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);

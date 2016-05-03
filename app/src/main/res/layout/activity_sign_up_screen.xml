@@ -44,11 +44,19 @@
         android:hint="@string/passwordHintText"
         android:layout_marginBottom="20dp"/>
 
+    <EditText android:id="@+id/confirmPassField"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/passField"
+        android:inputType="textPassword"
+        android:hint="Confirm Password"
+        android:layout_marginBottom="20dp"/>
+
     <Button
         android:id="@+id/signUpButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/passField"
+        android:layout_below="@+id/confirmPassField"
         android:text="@string/signUpButtonLabel" />
 
 </RelativeLayout>

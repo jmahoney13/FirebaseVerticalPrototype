@@ -3,6 +3,7 @@ package edu.calpoly.jwmahone.firebaseverticalprototype;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -17,7 +18,11 @@ import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
 import com.firebase.client.Query;
+import com.firebase.client.ServerValue;
 import com.firebase.client.ValueEventListener;
+
+import java.util.HashMap;
+import java.util.Map;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -25,8 +30,9 @@ public class MainActivity extends AppCompatActivity {
     private Firebase fireRoot;
     private Button addLineButton;
     private EditText postEditTextField;
-    private Button getLineButton;
-    private TextView receivedPostTextView;
+    private Button commentButton;
+    private EditText commentEditTextField;
+    private String lastKey;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,41 +46,38 @@ public class MainActivity extends AppCompatActivity {
         }
 
         final AuthData currUser = fireRoot.getAuth();
-        if (currUser != null) {
-            Toast.makeText(this, "User: " + currUser.getUid() + " is logged in with " + currUser.getProviderData(), Toast.LENGTH_LONG).show();
-        }
+        final String currEmail = (String)currUser.getProviderData().get("email");
 
+        Log.d("email: ", currEmail);
         addLineButton = (Button) findViewById(R.id.submitLineButton);
         postEditTextField = (EditText) findViewById(R.id.lineEditText);
-        getLineButton = (Button) findViewById(R.id.getLineButton);
-        receivedPostTextView = (TextView) findViewById(R.id.receivedPostTextView);
+        commentButton = (Button) findViewById(R.id.commentButton);
+        commentEditTextField = (EditText) findViewById(R.id.commentEditText);
 
         addLineButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //HOW DO YOU GRAB THE EMAIL FROM THE USER LOGGED IN RIGHT HERE!!!!!!!!!!!!!!!!!
                 //how to increment likes here
                 String post = postEditTextField.getText().toString();
                 postEditTextField.setText("");
 
-                assert currUser != null;
-                MountainPost mp = new MountainPost(post, currUser.getUid());
-                Firebase newRef = fireRoot.child("users").child(currUser.getUid()).child("posts");
-                newRef.push().setValue(mp);
-            }
-        });
+                final MountainPost mp = new MountainPost(post, currEmail);
+                mp.addComment("test comment 1");
+                mp.addComment("test comment 2");
+                mp.like();
+                final Firebase postRef = fireRoot.child("mountainPosts");
 
-        getLineButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Firebase postRef = fireRoot.child("users").child(currUser.getUid()).child("posts");
-                Query qRef = postRef.orderByChild("author").equalTo(currUser.getUid());
+                postRef.push().setValue(mp);
 
-                qRef.addChildEventListener(new ChildEventListener() {
+                postRef.addChildEventListener(new ChildEventListener() {
                     @Override
                     public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                        MountainPost recPost = dataSnapshot.getValue(MountainPost.class);
-                        receivedPostTextView.setText(recPost.getLine());
+                        String key = dataSnapshot.getKey();
+                        mp.setPostKey(key);
+                        Map<String, Object> vals = new HashMap<>();
+                        vals.put("postKey", key);
+                        postRef.child(key).updateChildren(vals);
+
                     }
 
                     @Override
@@ -97,6 +100,19 @@ public class MainActivity extends AppCompatActivity {
 
                     }
                 });
+            }
+        });
+
+        commentButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Firebase postRef = fireRoot.child("mountainPosts").child(lastKey);
+                String comment = commentEditTextField.getText().toString();
+                commentEditTextField.setText("");
+                Map<String, Object> comments = new HashMap<>();
+                comments.put("comments", comment);
+                postRef.updateChildren(comments);
+
             }
         });
     }
