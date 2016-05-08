@@ -20,7 +20,8 @@
         </activity>
         <activity android:name=".LoginScreenActivity" />
         <activity android:name=".SignUpScreenActivity" />
-        <activity android:name=".FirebaseApp"></activity>
+        <activity android:name=".FirebaseApp" />
+        <activity android:name=".MountainSelectionActivity"></activity>
     </application>
 
 </manifest>

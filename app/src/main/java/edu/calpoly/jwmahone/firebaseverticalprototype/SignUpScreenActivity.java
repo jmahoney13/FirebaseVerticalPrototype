@@ -45,7 +45,7 @@ public class SignUpScreenActivity extends AppCompatActivity {
                             rootBase.authWithPassword(emailAddr, pass, new Firebase.AuthResultHandler() {
                                 @Override
                                 public void onAuthenticated(AuthData authData) {
-                                    Intent intent = new Intent(SignUpScreenActivity.this, MainActivity.class);
+                                    Intent intent = new Intent(SignUpScreenActivity.this, MountainSelectionActivity.class);
                                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                                     intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
                                     startActivity(intent);
