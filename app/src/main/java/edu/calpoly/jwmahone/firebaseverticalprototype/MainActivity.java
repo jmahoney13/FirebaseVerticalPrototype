@@ -3,26 +3,17 @@ package edu.calpoly.jwmahone.firebaseverticalprototype;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
-
 import com.firebase.client.AuthData;
 import com.firebase.client.ChildEventListener;
 import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
-import com.firebase.client.Query;
-import com.firebase.client.ServerValue;
-import com.firebase.client.ValueEventListener;
-
-import org.w3c.dom.Text;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -40,17 +31,20 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
 
         fireRoot = new Firebase(FIREBASEURL);
-        if (fireRoot.getAuth() == null) {
+        final AuthData currUser = fireRoot.getAuth();
+
+        if (currUser == null) {
             startLogin();
         }
 
-        final AuthData currUser = fireRoot.getAuth();
-        final String currEmail = (String)currUser.getProviderData().get("email");
+        setContentView(R.layout.activity_main);
 
-        Log.d("email: ", currEmail);
+        //final AuthData currUser = fireRoot.getAuth();
+        //final String currEmail = (String)currUser.getProviderData().get("email");
+
+        //Log.d("email: ", currEmail);
         addLineButton = (Button) findViewById(R.id.submitLineButton);
         postEditTextField = (EditText) findViewById(R.id.lineEditText);
         commentButton = (Button) findViewById(R.id.commentButton);
@@ -71,6 +65,7 @@ public class MainActivity extends AppCompatActivity {
                 String post = postEditTextField.getText().toString();
                 postEditTextField.setText("");
 
+                String currEmail = (String)currUser.getProviderData().get("email");
                 final MountainPost mp = new MountainPost(post, currEmail);
                 mp.addComment("test comment 1");
                 mp.addComment("test comment 2");
