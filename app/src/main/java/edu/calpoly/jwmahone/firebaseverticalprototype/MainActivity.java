@@ -1,13 +1,22 @@
 package edu.calpoly.jwmahone.firebaseverticalprototype;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+
+import android.graphics.Color;
+import android.os.AsyncTask;
+import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.graphics.Palette;
+import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 import com.firebase.client.AuthData;
 import com.firebase.client.ChildEventListener;
@@ -20,7 +29,7 @@ import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
     public static final String FIREBASEURL = "https://popping-inferno-9423.firebaseio.com/";
-    private Firebase fireRoot;
+    private Firebase fireRoot = new Firebase(FIREBASEURL);
     private Button addLineButton;
     private EditText postEditTextField;
     private Button commentButton;
@@ -28,6 +37,49 @@ public class MainActivity extends AppCompatActivity {
     private String lastKey;
     private TextView mountainTitle;
 
+    private Toolbar toolbar;
+    private CollapsingToolbarLayout collapseLayout;
+
+    @Override
+    protected  void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        final AuthData currUser = fireRoot.getAuth();
+        if (currUser == null) {
+            startLogin();
+        }
+
+        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        collapseLayout = (CollapsingToolbarLayout) findViewById(R.id.collapsingToolBarLayout);
+
+        Bundle extras = getIntent().getExtras();
+        if (extras != null) {
+            String mName = extras.getString("MOUNTAIN_NAME");
+            collapseLayout.setTitle(mName);
+        }
+        else {
+            collapseLayout.setTitle("THIS IS COOL");
+        }
+
+        /*
+        ImageView header = (ImageView) findViewById(R.id.headerImage);
+
+        Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.squaw);
+
+        Palette.from(bitmap).generate(new Palette.PaletteAsyncListener() {
+            @Override
+            public void onGenerated(Palette palette) {
+                int mutedColor = palette.getMutedColor(R.color.colorPrimary);
+                collapseLayout.setContentScrimColor(mutedColor);
+            }
+        });*/
+
+    }
+
+    /*
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -121,6 +173,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+    */
 
     public void startLogin() {
         Intent intent = new Intent(this, LoginScreenActivity.class);
