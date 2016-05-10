@@ -21,6 +21,8 @@ import com.firebase.client.Query;
 import com.firebase.client.ServerValue;
 import com.firebase.client.ValueEventListener;
 
+import org.w3c.dom.Text;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -33,12 +35,12 @@ public class MainActivity extends AppCompatActivity {
     private Button commentButton;
     private EditText commentEditTextField;
     private String lastKey;
+    private TextView mountainTitle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
 
         fireRoot = new Firebase(FIREBASEURL);
         if (fireRoot.getAuth() == null) {
@@ -53,6 +55,14 @@ public class MainActivity extends AppCompatActivity {
         postEditTextField = (EditText) findViewById(R.id.lineEditText);
         commentButton = (Button) findViewById(R.id.commentButton);
         commentEditTextField = (EditText) findViewById(R.id.commentEditText);
+
+        mountainTitle = (TextView) findViewById(R.id.mainActWelcome);
+
+        Bundle extras = getIntent().getExtras();
+        if (extras != null) {
+            String mName = extras.getString("MOUNTAIN_NAME");
+            mountainTitle.setText(mName);
+        }
 
         addLineButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -106,13 +116,13 @@ public class MainActivity extends AppCompatActivity {
         commentButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
                 Firebase postRef = fireRoot.child("mountainPosts").child(lastKey);
                 String comment = commentEditTextField.getText().toString();
                 commentEditTextField.setText("");
                 Map<String, Object> comments = new HashMap<>();
                 comments.put("comments", comment);
                 postRef.updateChildren(comments);
-
             }
         });
     }
