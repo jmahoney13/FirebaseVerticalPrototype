@@ -23,8 +23,10 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
+
 import com.firebase.client.AuthData;
 import com.firebase.client.Firebase;
+import com.firebase.client.Query;
 import com.firebase.ui.FirebaseRecyclerAdapter;
 
 
@@ -47,6 +49,7 @@ public class MainActivity extends AppCompatActivity {
     private CollapsingToolbarLayout collapseLayout;
     private FloatingActionButton fab;
     private Firebase adapterRoot;
+    private Query adapterRootQuery;
 
     @Override
     protected  void onCreate(Bundle savedInstanceState) {
@@ -59,13 +62,16 @@ public class MainActivity extends AppCompatActivity {
             startLogin();
         }
 
+
+        LinearLayoutManager lm = new LinearLayoutManager(this);
+        lm.setReverseLayout(false);
+
         this.postsRecyclerView = (RecyclerView) findViewById(R.id.recyclerView);
         collapseLayout = (CollapsingToolbarLayout) findViewById(R.id.collapsingToolBarLayout);
-        this.postsRecyclerView.setHasFixedSize(true);
-        this.postsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        //LinearLayoutManager lm = new LinearLayoutManager(this);
-        //lm.setReversedLayout(true);
-        //postsRecyclerView.setLayoutManager(lm);
+
+        this.postsRecyclerView.setHasFixedSize(false);
+        this.postsRecyclerView.setLayoutManager(lm);
+
 
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
@@ -103,8 +109,10 @@ public class MainActivity extends AppCompatActivity {
 
 
         adapterRoot = fireRoot.child("mountain").child(collapseLayout.getTitle().toString()).child("posts");
+        //check this part below????
+        adapterRootQuery = adapterRoot.limitToLast(15);
 
-        this.recyclerAdapater = new FirebaseRecyclerAdapter<MountainPost, PostsViewHolder>(MountainPost.class, android.R.layout.two_line_list_item, PostsViewHolder.class, adapterRoot) {
+        this.recyclerAdapater = new FirebaseRecyclerAdapter<MountainPost, PostsViewHolder>(MountainPost.class, android.R.layout.two_line_list_item, PostsViewHolder.class, adapterRootQuery) {
             @Override
             public void populateViewHolder(PostsViewHolder postsViewHolder, MountainPost mountainPost, int position) {
                 Log.d("POPULATEVIEWHOLDER", " MADE IT");
@@ -116,7 +124,6 @@ public class MainActivity extends AppCompatActivity {
 
         this.postsRecyclerView.setAdapter(this.recyclerAdapater);
         Log.d("number of items: ", "" + this.recyclerAdapater.getItemCount());
-
 
 
         fab = (FloatingActionButton) findViewById(R.id.fab);
