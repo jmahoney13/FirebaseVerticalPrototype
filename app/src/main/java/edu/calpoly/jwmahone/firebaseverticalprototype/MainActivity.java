@@ -19,14 +19,18 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.firebase.client.AuthData;
+import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
+import com.firebase.client.FirebaseError;
 import com.firebase.client.Query;
+import com.firebase.client.ValueEventListener;
 import com.firebase.ui.FirebaseRecyclerAdapter;
 
 
@@ -42,7 +46,10 @@ public class MainActivity extends AppCompatActivity {
     private TextView mountainTitle;
 
     private RecyclerView postsRecyclerView;
-    private FirebaseRecyclerAdapter<MountainPost, PostsViewHolder> recyclerAdapater;
+    //private FirebaseRecyclerAdapter<MountainPost, PostsViewHolder> recyclerAdapater;
+
+    private RecyclerView.Adapter<PostsViewHolder> recyclerAdapater;
+
     private String mName;
 
     private Toolbar toolbar;
@@ -64,14 +71,13 @@ public class MainActivity extends AppCompatActivity {
 
 
         LinearLayoutManager lm = new LinearLayoutManager(this);
-        lm.setReverseLayout(false);
+        lm.setOrientation(LinearLayoutManager.VERTICAL);
 
         this.postsRecyclerView = (RecyclerView) findViewById(R.id.recyclerView);
-        collapseLayout = (CollapsingToolbarLayout) findViewById(R.id.collapsingToolBarLayout);
-
         this.postsRecyclerView.setHasFixedSize(false);
         this.postsRecyclerView.setLayoutManager(lm);
 
+        collapseLayout = (CollapsingToolbarLayout) findViewById(R.id.collapsingToolBarLayout);
 
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
@@ -94,7 +100,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
+        //glide to change image
         //ImageView header = (ImageView) findViewById(R.id.headerImage);
 
         Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.squaw);
@@ -111,6 +117,25 @@ public class MainActivity extends AppCompatActivity {
         adapterRoot = fireRoot.child("mountain").child(collapseLayout.getTitle().toString()).child("posts");
         //check this part below????
         adapterRootQuery = adapterRoot.limitToLast(15);
+/*
+        adapterRoot.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+                Log.d("Snap: ", snapshot.toString());
+
+                for (DataSnapshot postSnapshot: snapshot.getChildren()) {
+                    Log.d("postsnap: ", postSnapshot.toString());
+                    MountainPost post = postSnapshot.getValue(MountainPost.class);
+                    System.out.println(post.getAuthor() + " - " + post.getLine());
+                }
+            }
+
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+                Log.d("Cancel: ", "cancelled");
+            }
+        });
+*/
 
         this.recyclerAdapater = new FirebaseRecyclerAdapter<MountainPost, PostsViewHolder>(MountainPost.class, android.R.layout.two_line_list_item, PostsViewHolder.class, adapterRootQuery) {
             @Override
@@ -121,9 +146,30 @@ public class MainActivity extends AppCompatActivity {
                 postsViewHolder.authorText.setText(mountainPost.getAuthor());
             }
         };
+/*
+        this.recyclerAdapater = new RecyclerView.Adapter<PostsViewHolder>() {
 
+            @Override
+            public PostsViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+                Log.d("onCreateViewHolder", "in function");
+                return new PostsViewHolder( LayoutInflater.from(parent.getContext()).inflate(android.R.layout.two_line_list_item, parent, false));
+            }
+
+            @Override
+            public void onBindViewHolder(PostsViewHolder postsViewHolder, int position) {
+                postsViewHolder.postText.setText("line");
+                postsViewHolder.authorText.setText("author");
+            }
+
+            @Override
+            public int getItemCount() {
+                return 1;
+            }
+        };
+*/
         this.postsRecyclerView.setAdapter(this.recyclerAdapater);
         Log.d("number of items: ", "" + this.recyclerAdapater.getItemCount());
+        //this.recyclerAdapater.notifyDataSetChanged();
 
 
         fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -199,7 +245,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        this.recyclerAdapater.cleanup();
+//        this.recyclerAdapater.cleanup();
     }
 
     public void populateFirebaseDb(String mountainName, AuthData auth) {
