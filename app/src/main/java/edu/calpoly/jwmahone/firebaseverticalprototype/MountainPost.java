@@ -11,7 +11,6 @@ public class MountainPost {
     //private ArrayList<String> comments;
     private List<String> comments;
     private int likes;
-    private String key;
 
     public MountainPost() {
 
@@ -22,16 +21,8 @@ public class MountainPost {
         this.author = author;
         this.comments = new ArrayList<>();
         this.likes = 0;
-        this.key = "";
     }
 
-    public String getPostKey() {
-        return this.key;
-    }
-
-    public void setPostKey(String key) {
-        this.key = key;
-    }
 
     public String getLine() {
         return this.line;
