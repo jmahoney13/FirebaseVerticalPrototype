@@ -19,18 +19,11 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.TextView;
-
 import com.firebase.client.AuthData;
-import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
-import com.firebase.client.FirebaseError;
 import com.firebase.client.Query;
-import com.firebase.client.ValueEventListener;
 import com.firebase.ui.FirebaseRecyclerAdapter;
 
 
@@ -38,17 +31,9 @@ import com.firebase.ui.FirebaseRecyclerAdapter;
 public class MainActivity extends AppCompatActivity {
     public static final String FIREBASEURL = "https://popping-inferno-9423.firebaseio.com/";
     private Firebase fireRoot = new Firebase(FIREBASEURL);
-    private Button addLineButton;
-    private EditText postEditTextField;
-    private Button commentButton;
-    private EditText commentEditTextField;
-    private String lastKey;
-    private TextView mountainTitle;
 
     private RecyclerView postsRecyclerView;
-    //private FirebaseRecyclerAdapter<MountainPost, PostsViewHolder> recyclerAdapater;
-
-    private RecyclerView.Adapter<PostsViewHolder> recyclerAdapater;
+    private FirebaseRecyclerAdapter<MountainPost, PostsViewHolder> recyclerAdapater;
 
     private String mName;
 
@@ -57,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
     private FloatingActionButton fab;
     private Firebase adapterRoot;
     private Query adapterRootQuery;
-    private int newPosition;
+
 
     @Override
     protected  void onCreate(Bundle savedInstanceState) {
@@ -121,62 +106,17 @@ public class MainActivity extends AppCompatActivity {
         //TODO
         //change limit value to be a variable that is also used in the scroll to function
         adapterRootQuery = adapterRoot.limitToLast(15);
-/*
-        adapterRoot.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot snapshot) {
-                Log.d("Snap: ", snapshot.toString());
-
-                for (DataSnapshot postSnapshot: snapshot.getChildren()) {
-                    Log.d("postsnap: ", postSnapshot.toString());
-                    MountainPost post = postSnapshot.getValue(MountainPost.class);
-                    System.out.println(post.getAuthor() + " - " + post.getLine());
-                }
-            }
-
-            @Override
-            public void onCancelled(FirebaseError firebaseError) {
-                Log.d("Cancel: ", "cancelled");
-            }
-        });
-*/
 
         this.recyclerAdapater = new FirebaseRecyclerAdapter<MountainPost, PostsViewHolder>(MountainPost.class, android.R.layout.two_line_list_item, PostsViewHolder.class, adapterRootQuery) {
             @Override
             public void populateViewHolder(PostsViewHolder postsViewHolder, MountainPost mountainPost, int position) {
-                //postsRecyclerView.smoothScrollToPosition(position);
-                newPosition = position;
-                Log.d("POPULATEVIEWHOLDER", " MADE IT");
                 Log.d("number viewholder: ", "" + recyclerAdapater.getItemCount());
                 postsViewHolder.postText.setText(mountainPost.getLine());
                 postsViewHolder.authorText.setText(mountainPost.getAuthor());
             }
         };
-/*
-        this.recyclerAdapater = new RecyclerView.Adapter<PostsViewHolder>() {
 
-            @Override
-            public PostsViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-                Log.d("onCreateViewHolder", "in function");
-                return new PostsViewHolder( LayoutInflater.from(parent.getContext()).inflate(android.R.layout.two_line_list_item, parent, false));
-            }
-
-            @Override
-            public void onBindViewHolder(PostsViewHolder postsViewHolder, int position) {
-                postsViewHolder.postText.setText("line");
-                postsViewHolder.authorText.setText("author");
-            }
-
-            @Override
-            public int getItemCount() {
-                return 1;
-            }
-        };
-*/
         this.postsRecyclerView.setAdapter(this.recyclerAdapater);
-        Log.d("number of items: ", "" + this.recyclerAdapater.getItemCount());
-        //this.recyclerAdapater.notifyDataSetChanged();
-
 
         fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -211,27 +151,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
-/*
-    @Override
-    public void onStart() {
-        super.onStart();
 
-        adapterRoot = fireRoot.child("mountain").child(collapseLayout.getTitle().toString()).child("posts");
-
-        this.recyclerAdapater = new FirebaseRecyclerAdapter<MountainPost, PostsViewHolder>(MountainPost.class, android.R.layout.two_line_list_item, PostsViewHolder.class, adapterRoot) {
-            @Override
-            public void populateViewHolder(PostsViewHolder postsViewHolder, MountainPost mountainPost, int position) {
-                Log.d("POPULATEVIEWHOLDER", " MADE IT");
-                Log.d("number viewholder: ", "" + recyclerAdapater.getItemCount());
-                postsViewHolder.postText.setText(mountainPost.getLine());
-                postsViewHolder.authorText.setText(mountainPost.getAuthor());
-            }
-        };
-
-        this.postsRecyclerView.setAdapter(this.recyclerAdapater);
-        Log.d("number of items: ", "" + this.recyclerAdapater.getItemCount());
-    }
-*/
 
     public static class PostsViewHolder extends RecyclerView.ViewHolder {
         private TextView postText;
@@ -244,11 +164,13 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+
     @Override
     public void onBackPressed() {
         Intent intent = new Intent(MainActivity.this, MountainSelectionActivity.class);
         startActivity(intent);
     }
+
 
     @Override
     public void onDestroy() {
@@ -256,116 +178,6 @@ public class MainActivity extends AppCompatActivity {
 //        this.recyclerAdapater.cleanup();
     }
 
-    public void populateFirebaseDb(String mountainName, AuthData auth) {
-        Firebase ref = fireRoot.child("mountain").child(mountainName).child("posts");
-        MountainPost mp = new MountainPost("test line", (String)auth.getProviderData().get("email"));
-        ref.push().setValue(mp);
-        MountainPost mp2 = new MountainPost("yay is this working?", (String)auth.getProviderData().get("email"));
-        ref.push().setValue(mp2);
-        MountainPost mp3 = new MountainPost("yay  working?", (String)auth.getProviderData().get("email"));
-        ref.push().setValue(mp3);
-        MountainPost mp4 = new MountainPost("weird line is this?", (String)auth.getProviderData().get("email"));
-        ref.push().setValue(mp4);
-        MountainPost mp5 = new MountainPost("number 5 baby", (String)auth.getProviderData().get("email"));
-        ref.push().setValue(mp5);
-
-    }
-
-    /*
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        fireRoot = new Firebase(FIREBASEURL);
-        final AuthData currUser = fireRoot.getAuth();
-
-        if (currUser == null) {
-            startLogin();
-        }
-
-        setContentView(R.layout.activity_main);
-
-        //final AuthData currUser = fireRoot.getAuth();
-        //final String currEmail = (String)currUser.getProviderData().get("email");
-
-        //Log.d("email: ", currEmail);
-        addLineButton = (Button) findViewById(R.id.submitLineButton);
-        postEditTextField = (EditText) findViewById(R.id.lineEditText);
-        commentButton = (Button) findViewById(R.id.commentButton);
-        commentEditTextField = (EditText) findViewById(R.id.commentEditText);
-
-        mountainTitle = (TextView) findViewById(R.id.mainActWelcome);
-
-        Bundle extras = getIntent().getExtras();
-        if (extras != null) {
-            String mName = extras.getString("MOUNTAIN_NAME");
-            mountainTitle.setText(mName);
-        }
-
-        addLineButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //how to increment likes here
-                String post = postEditTextField.getText().toString();
-                postEditTextField.setText("");
-
-                String currEmail = (String)currUser.getProviderData().get("email");
-                final MountainPost mp = new MountainPost(post, currEmail);
-                mp.addComment("test comment 1");
-                mp.addComment("test comment 2");
-                mp.like();
-                final Firebase postRef = fireRoot.child("mountainPosts");
-
-                postRef.push().setValue(mp);
-
-                postRef.addChildEventListener(new ChildEventListener() {
-                    @Override
-                    public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                        String key = dataSnapshot.getKey();
-                        mp.setPostKey(key);
-                        Map<String, Object> vals = new HashMap<>();
-                        vals.put("postKey", key);
-                        postRef.child(key).updateChildren(vals);
-
-                    }
-
-                    @Override
-                    public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-
-                    }
-
-                    @Override
-                    public void onChildRemoved(DataSnapshot dataSnapshot) {
-
-                    }
-
-                    @Override
-                    public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
-                    }
-
-                    @Override
-                    public void onCancelled(FirebaseError firebaseError) {
-
-                    }
-                });
-            }
-        });
-
-        commentButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                Firebase postRef = fireRoot.child("mountainPosts").child(lastKey);
-                String comment = commentEditTextField.getText().toString();
-                commentEditTextField.setText("");
-                Map<String, Object> comments = new HashMap<>();
-                comments.put("comments", comment);
-                postRef.updateChildren(comments);
-            }
-        });
-    }
-    */
 
     public void startLogin() {
         Intent intent = new Intent(this, LoginScreenActivity.class);
@@ -374,12 +186,14 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu, menu);
         return true;
     }
+
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
