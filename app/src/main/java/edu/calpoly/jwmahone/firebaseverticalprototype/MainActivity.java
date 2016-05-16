@@ -57,6 +57,7 @@ public class MainActivity extends AppCompatActivity {
     private FloatingActionButton fab;
     private Firebase adapterRoot;
     private Query adapterRootQuery;
+    private int newPosition;
 
     @Override
     protected  void onCreate(Bundle savedInstanceState) {
@@ -72,6 +73,8 @@ public class MainActivity extends AppCompatActivity {
 
         LinearLayoutManager lm = new LinearLayoutManager(this);
         lm.setOrientation(LinearLayoutManager.VERTICAL);
+        lm.setReverseLayout(true);
+        lm.setStackFromEnd(true);
 
         this.postsRecyclerView = (RecyclerView) findViewById(R.id.recyclerView);
         this.postsRecyclerView.setHasFixedSize(false);
@@ -115,7 +118,8 @@ public class MainActivity extends AppCompatActivity {
 
 
         adapterRoot = fireRoot.child("mountain").child(collapseLayout.getTitle().toString()).child("posts");
-        //check this part below????
+        //TODO
+        //change limit value to be a variable that is also used in the scroll to function
         adapterRootQuery = adapterRoot.limitToLast(15);
 /*
         adapterRoot.addValueEventListener(new ValueEventListener() {
@@ -140,6 +144,8 @@ public class MainActivity extends AppCompatActivity {
         this.recyclerAdapater = new FirebaseRecyclerAdapter<MountainPost, PostsViewHolder>(MountainPost.class, android.R.layout.two_line_list_item, PostsViewHolder.class, adapterRootQuery) {
             @Override
             public void populateViewHolder(PostsViewHolder postsViewHolder, MountainPost mountainPost, int position) {
+                //postsRecyclerView.smoothScrollToPosition(position);
+                newPosition = position;
                 Log.d("POPULATEVIEWHOLDER", " MADE IT");
                 Log.d("number viewholder: ", "" + recyclerAdapater.getItemCount());
                 postsViewHolder.postText.setText(mountainPost.getLine());
@@ -188,6 +194,8 @@ public class MainActivity extends AppCompatActivity {
                     .setCancelable(false)
                     .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
+                            //TODO
+                            postsRecyclerView.smoothScrollToPosition(15); //change this to be whatever the limit value is
                             MountainPost mp = new MountainPost(postInput.getText().toString(), (String)currUser.getProviderData().get("email"));
                             adapterRoot.push().setValue(mp);
                         }
