@@ -1,8 +1,8 @@
 <resources>
 
-    <style name="MyTheme" parent="Base.MyTheme"></style>
+    <style name="MyTheme" parent="ParallaxTheme"></style>
 
-    <style name="Base.MyTheme" parent="Theme.AppCompat.Light.NoActionBar">
+    <style name="ParallaxTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="colorPrimary">@color/primary_500</item>
         <item name="colorPrimaryDark">@color/primary_700</item>
         <item name="colorAccent">@color/accent_500</item>
@@ -12,7 +12,7 @@
         <item name="android:windowBackground">@color/bg_light</item>
     </style>
 
-
+    <style name="MainTheme" parent="Theme.AppCompat.Light"></style>
 
 
 

@@ -20,6 +20,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 import com.firebase.client.AuthData;
 import com.firebase.client.Firebase;
@@ -43,18 +45,15 @@ public class MainActivity extends AppCompatActivity {
     private Firebase adapterRoot;
     private Query adapterRootQuery;
 
+    private int currentPosition;
+
 
     @Override
     protected  void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
         final AuthData currUser = fireRoot.getAuth();
-        if (currUser == null) {
-            startLogin();
-        }
-
 
         LinearLayoutManager lm = new LinearLayoutManager(this);
         lm.setOrientation(LinearLayoutManager.VERTICAL);
@@ -62,6 +61,7 @@ public class MainActivity extends AppCompatActivity {
         lm.setStackFromEnd(true);
 
         this.postsRecyclerView = (RecyclerView) findViewById(R.id.recyclerView);
+        assert this.postsRecyclerView != null;
         this.postsRecyclerView.setHasFixedSize(false);
         this.postsRecyclerView.setLayoutManager(lm);
 
@@ -102,23 +102,94 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
-        adapterRoot = fireRoot.child("mountain").child(collapseLayout.getTitle().toString()).child("posts");
+        if (collapseLayout != null) {
+            adapterRoot = fireRoot.child("mountain").child(collapseLayout.getTitle().toString()).child("posts");
+        }
         //TODO
         //change limit value to be a variable that is also used in the scroll to function
         adapterRootQuery = adapterRoot.limitToLast(15);
 
-        this.recyclerAdapater = new FirebaseRecyclerAdapter<MountainPost, PostsViewHolder>(MountainPost.class, android.R.layout.two_line_list_item, PostsViewHolder.class, adapterRootQuery) {
+        this.recyclerAdapater = new FirebaseRecyclerAdapter<MountainPost, PostsViewHolder>(MountainPost.class, R.layout.posts_view, PostsViewHolder.class, adapterRootQuery) {
             @Override
             public void populateViewHolder(PostsViewHolder postsViewHolder, MountainPost mountainPost, int position) {
                 Log.d("number viewholder: ", "" + recyclerAdapater.getItemCount());
+                currentPosition = position;
                 postsViewHolder.postText.setText(mountainPost.getLine());
                 postsViewHolder.authorText.setText(mountainPost.getAuthor());
+
+                if(mountainPost.getComments() != null) {
+                    postsViewHolder.numComments.setText(mountainPost.getComments().size());
+                }
+                else {
+                    postsViewHolder.numComments.setText("0");
+                }
+
+                postsViewHolder.numLikes.setText(Integer.toString(mountainPost.getLikes()));
             }
         };
 
         this.postsRecyclerView.setAdapter(this.recyclerAdapater);
 
         fab = (FloatingActionButton) findViewById(R.id.fab);
+        setupFAB(fab, currUser);
+
+    }
+
+
+    public static class PostsViewHolder extends RecyclerView.ViewHolder implements RadioGroup.OnCheckedChangeListener {
+        private TextView postText;
+        private TextView authorText;
+        private TextView numComments;
+        private TextView numLikes;
+        private RadioGroup likeGroup;
+        private RadioButton likeButton;
+        private RadioButton dislikeButton;
+
+        public PostsViewHolder(View itemView) {
+            super(itemView);
+            postText = (TextView) itemView.findViewById(R.id.lineTextView);
+            authorText = (TextView) itemView.findViewById(R.id.authorTextView);
+            numComments = (TextView) itemView.findViewById(R.id.numCommentsTextView);
+            numLikes = (TextView) itemView.findViewById(R.id.numLikesTextView);
+            likeGroup = (RadioGroup) itemView.findViewById(R.id.likeRadioGroup);
+            likeButton = (RadioButton) itemView.findViewById(R.id.likeRadioButton);
+            dislikeButton = (RadioButton) itemView.findViewById(R.id.dislikeRadioButton);
+            likeGroup.setOnCheckedChangeListener(this);
+        }
+
+        @Override
+        public void onCheckedChanged(RadioGroup group, int checkedId) {
+            int nLikes = Integer.parseInt(numLikes.getText().toString());
+            int newLikes = 0;
+
+            if (likeButton.isChecked() == true) {
+                if (checkedId == R.id.likeRadioButton) {
+                    likeGroup.clearCheck();
+                    newLikes = nLikes - 1;
+                }
+                else if (checkedId == R.id.dislikeRadioButton) {
+                    dislikeButton.toggle();
+                    newLikes = nLikes - 2;
+                }
+            }
+
+            if (checkedId == R.id.likeRadioButton) {
+                likeButton.toggle();
+                newLikes = nLikes + 1;
+
+            }
+            else if (checkedId == R.id.dislikeRadioButton) {
+                dislikeButton.toggle();
+                newLikes = nLikes - 1;
+            }
+
+            numLikes.setText(Integer.toString(newLikes));
+
+
+        }
+    }
+
+    public void setupFAB(FloatingActionButton fab, final AuthData currUser) {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -131,37 +202,26 @@ public class MainActivity extends AppCompatActivity {
                 final EditText postInput = (EditText) addView.findViewById(R.id.addPostEditText);
 
                 alertDialogBuilder
-                    .setCancelable(false)
-                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id) {
-                            //TODO
-                            postsRecyclerView.smoothScrollToPosition(15); //change this to be whatever the limit value is
-                            MountainPost mp = new MountainPost(postInput.getText().toString(), (String)currUser.getProviderData().get("email"));
-                            adapterRoot.push().setValue(mp);
-                        }
-                    })
-                    .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id) {
-                            dialog.cancel();
-                        }
-                    });
+                        .setCancelable(false)
+                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                //TODO
+                                postsRecyclerView.smoothScrollToPosition(15); //change this to be whatever the limit value is
+                                MountainPost mp = new MountainPost(postInput.getText().toString().trim(), (String)currUser.getProviderData().get("email"));
+                                //Log.d("comments: ", "" + mp.getComments().size());
+                                adapterRoot.push().setValue(mp);
+                            }
+                        })
+                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                dialog.cancel();
+                            }
+                        });
 
                 AlertDialog alertDialog = alertDialogBuilder.create();
                 alertDialog.show();
             }
         });
-    }
-
-
-    public static class PostsViewHolder extends RecyclerView.ViewHolder {
-        private TextView postText;
-        private TextView authorText;
-
-        public PostsViewHolder(View itemView) {
-            super(itemView);
-            postText = (TextView) itemView.findViewById(android.R.id.text1);
-            authorText = (TextView) itemView.findViewById(android.R.id.text2);
-        }
     }
 
 
@@ -175,7 +235,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onDestroy() {
         super.onDestroy();
-//        this.recyclerAdapater.cleanup();
+        this.recyclerAdapater.cleanup();
     }
 
 

@@ -3,12 +3,15 @@ package edu.calpoly.jwmahone.firebaseverticalprototype;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+
+import com.firebase.client.AuthData;
 import com.firebase.client.Firebase;
 
 
@@ -16,10 +19,17 @@ public class MountainSelectionActivity extends AppCompatActivity {
     private ListView mountainList;
     private Firebase fireRoot = new Firebase(MainActivity.FIREBASEURL);
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_mountain_selection);
+
+        final AuthData currUser = fireRoot.getAuth();
+        if (currUser == null) {
+            startLogin();
+        }
+        Log.d("here", "in selection");
 
         this.mountainList = (ListView) findViewById(android.R.id.list);
         this.mountainList.setAdapter(new ArrayAdapter<>(this, R.layout.mountain_selection, R.id.mountainTextView, getResources().getStringArray(R.array.mountains)));
