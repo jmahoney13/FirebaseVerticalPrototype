@@ -84,6 +84,7 @@ public class MainActivity extends AppCompatActivity {
                 postsViewHolder.setMountainName(mName);
                 postsViewHolder.postText.setText(mountainPost.getLine());
                 postsViewHolder.authorText.setText(mountainPost.getAuthor());
+                postsViewHolder.likeGroup.clearCheck();
 
                 /*
                 if(mountainPost.getComments() != null) {
@@ -127,8 +128,8 @@ public class MainActivity extends AppCompatActivity {
             likeGroup = (RadioGroup) itemView.findViewById(R.id.likeRadioGroup);
             likeButton = (RadioButton) itemView.findViewById(R.id.likeRadioButton);
             dislikeButton = (RadioButton) itemView.findViewById(R.id.dislikeRadioButton);
+
             likeGroup.setOnCheckedChangeListener(this);
-            likeGroup.setSaveEnabled(true);
             itemView.setClickable(true);
             itemView.setOnLongClickListener(this);
         }
@@ -151,22 +152,15 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onCheckedChanged(RadioGroup group, int checkedId) {
-
+            Log.d("radio: ", "onCheckedChanged");
             if (checkedId == R.id.likeRadioButton) {
-                likeButton.toggle();
                 likeTransaction();
             }
 
             else if (checkedId == R.id.dislikeRadioButton) {
-                dislikeButton.toggle();
                 dislikeTransaction();
             }
-
-            //cant do this anywhere but need to do it WTF!!!!!
-            //rootRef.removeEventListener(likeListener);
-
         }
-
 
         public void likeTransaction() {
             this.rootRef.addListenerForSingleValueEvent(new ValueEventListener() {
