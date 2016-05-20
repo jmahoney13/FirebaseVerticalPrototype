@@ -2,10 +2,11 @@ package edu.calpoly.jwmahone.firebaseverticalprototype;
 
 import com.firebase.client.Firebase;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MountainPost {
+public class MountainPost implements Serializable {
     private String line;
     private String author;
     //private ArrayList<String> comments;

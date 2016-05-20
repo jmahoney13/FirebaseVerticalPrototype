@@ -13,8 +13,10 @@
         android:theme="@style/MyTheme">
 
         <activity android:name=".MainActivity"
-            android:theme="@style/ParallaxTheme"/>
+            android:theme="@style/ParallaxTheme" />
+
         <activity android:name=".LoginScreenActivity" />
+
         <activity android:name=".SignUpScreenActivity" />
 
         <activity android:name=".MountainSelectionActivity">
@@ -24,6 +26,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity android:name=".CommentsActivity"/>
+
     </application>
 
 </manifest>

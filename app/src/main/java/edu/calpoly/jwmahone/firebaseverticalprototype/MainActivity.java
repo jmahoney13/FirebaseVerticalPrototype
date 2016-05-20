@@ -1,12 +1,16 @@
 package edu.calpoly.jwmahone.firebaseverticalprototype;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
+import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.view.ViewCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -51,6 +55,8 @@ public class MainActivity extends AppCompatActivity {
     private Firebase adapterRoot;
     private Query adapterRootQuery;
 
+    private int specialColor;
+
     private int LIMIT = 15;
 
 
@@ -74,6 +80,8 @@ public class MainActivity extends AppCompatActivity {
 
                 postsViewHolder.setCurrPost(currPost);
                 postsViewHolder.setFirebaseRoot(adapterRoot);
+                postsViewHolder.setContext(MainActivity.this);
+                postsViewHolder.setMountainName(mName);
                 postsViewHolder.postText.setText(mountainPost.getLine());
                 postsViewHolder.authorText.setText(mountainPost.getAuthor());
 
@@ -92,29 +100,12 @@ public class MainActivity extends AppCompatActivity {
 
         this.postsRecyclerView.setAdapter(this.recyclerAdapater);
 
-
-        /*
-        this.adapterRoot.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                for (DataSnapshot child: dataSnapshot.getChildren()) {
-                    Log.d("Post: ", child.toString());
-                }
-            }
-
-            @Override
-            public void onCancelled(FirebaseError firebaseError) {
-                Log.e("Cancel:", firebaseError.toString());
-            }
-        }); */
-
-
         fab = (FloatingActionButton) findViewById(R.id.fab);
         setupFAB(fab, currUser);
     }
 
 
-    public static class PostsViewHolder extends RecyclerView.ViewHolder implements RadioGroup.OnCheckedChangeListener {
+    public static class PostsViewHolder extends RecyclerView.ViewHolder implements RadioGroup.OnCheckedChangeListener, View.OnLongClickListener {
         private TextView postText;
         private TextView authorText;
         private TextView numComments;
@@ -124,6 +115,8 @@ public class MainActivity extends AppCompatActivity {
         private RadioButton dislikeButton;
         private Firebase rootRef;
         private MountainPost currPost;
+        private Context context;
+        private String mountain;
 
         public PostsViewHolder(View itemView) {
             super(itemView);
@@ -136,6 +129,8 @@ public class MainActivity extends AppCompatActivity {
             dislikeButton = (RadioButton) itemView.findViewById(R.id.dislikeRadioButton);
             likeGroup.setOnCheckedChangeListener(this);
             likeGroup.setSaveEnabled(true);
+            itemView.setClickable(true);
+            itemView.setOnLongClickListener(this);
         }
 
         public void setFirebaseRoot(Firebase root) {
@@ -146,6 +141,13 @@ public class MainActivity extends AppCompatActivity {
             this.currPost = mp;
         }
 
+        public void setContext(Context context) {
+            this.context = context;
+        }
+
+        public void setMountainName(String mName) {
+            this.mountain = mName;
+        }
 
         @Override
         public void onCheckedChanged(RadioGroup group, int checkedId) {
@@ -245,8 +247,29 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
         }
+
+        @Override
+        public boolean onLongClick(View v) {
+            //start comments activity
+            Intent intent = new Intent(this.context, CommentsActivity.class);
+            intent.putExtra("MOUNTAIN_NAME", this.mountain);
+            intent.putExtra("MOUNTAIN_POST", currPost);
+            this.context.startActivity(intent);
+            return true;
+        }
     }
 
+/*
+    @Override
+    public void onResume() {
+        super.onResume();
+        View mainView = getWindow().getDecorView();
+        mainView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
+        mainView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
+        mainView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN);
+    }
+
+*/
 
     public void initLayout() {
         setContentView(R.layout.activity_main);
@@ -344,9 +367,29 @@ public class MainActivity extends AppCompatActivity {
                     collapseLayout.setExpandedTitleColor(swatchList.get(maxPosition).getTitleTextColor());
                     collapseLayout.setContentScrimColor(swatchList.get(maxPosition).getRgb());
                     collapseLayout.setTitle(mName);
+
+                    specialColor = swatchList.get(maxPosition).getRgb();
                 }
             }
         });
+
+
+        AppBarLayout.OnOffsetChangedListener mListener;
+        mListener = new AppBarLayout.OnOffsetChangedListener() {
+            @Override
+            public void onOffsetChanged(AppBarLayout appBarLayout, int verticalOffset) {
+                if(collapseLayout.getHeight() + verticalOffset < 2 * ViewCompat.getMinimumHeight(collapseLayout)) {
+                    getWindow().setStatusBarColor(specialColor);
+                }
+                else {
+                    getWindow().setStatusBarColor(ContextCompat.getColor(MainActivity.this, android.R.color.transparent));
+                }
+            }
+        };
+        AppBarLayout appBar = (AppBarLayout) findViewById(R.id.postsAppBar);
+        assert appBar != null;
+        appBar.addOnOffsetChangedListener(mListener);
+
     }
 
 
