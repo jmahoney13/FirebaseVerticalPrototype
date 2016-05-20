@@ -9,17 +9,11 @@
     <string name="welcomeText">Welcome to <b>Straightline</b>, the app for skiers and snowboarders on the mountain. If you have an account with us already please sign in otherwise hit the <b>Sign Up</b> link below.</string>
     <string name="signUpText">Sign up here to start your <b>Straightline</b> experience!</string>
     <string-array name="mountains">
-        <item>Bear Valley</item>
-        <item>Boreal Mountain</item>
-        <item>Donner Ski Ranch</item>
         <item>Heavenly</item>
-        <item>HomewoodA</item>
         <item>Kirkwood</item>
         <item>Mammoth</item>
         <item>Northstar</item>
         <item>Sierra-at-Tahoe</item>
-        <item>China Peak</item>
-        <item>Soda Springs</item>
         <item>Squaw Valley</item>
         <item>Alpine Meadows</item>
         <item>Sugar Bowl</item>

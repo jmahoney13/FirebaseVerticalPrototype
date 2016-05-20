@@ -9,7 +9,7 @@ public class MountainPost {
     private String line;
     private String author;
     //private ArrayList<String> comments;
-    private List<String> comments;
+    //private List<String> comments;
     private int likes;
 
     public MountainPost() {
@@ -19,7 +19,7 @@ public class MountainPost {
     public MountainPost(String line, String author) {
         this.line = line;
         this.author = author;
-        this.comments = new ArrayList<>();
+        //this.comments = new ArrayList<>();
         this.likes = 0;
     }
 
@@ -51,7 +51,7 @@ public class MountainPost {
     public void dislike() {
         this.likes -= 1;
     }
-
+/*
     public void addComment(String comment) {
         this.comments.add(comment);
     }
@@ -59,7 +59,7 @@ public class MountainPost {
     public List<String> getComments() {
         return this.comments;
     }
-
+*/
     public boolean equals(Object o) {
         if (o == null) {
             return false;
@@ -73,6 +73,10 @@ public class MountainPost {
         if (!(this.author.equals(((MountainPost)o).author))) {
             return false;
         }
+        if (!(this.likes == (((MountainPost)o).likes))) {
+            return false;
+        }
+
         return true;
     }
 }

@@ -12,7 +12,8 @@
         android:supportsRtl="true"
         android:theme="@style/MyTheme">
 
-        <activity android:name=".MainActivity"/>
+        <activity android:name=".MainActivity"
+            android:theme="@style/ParallaxTheme"/>
         <activity android:name=".LoginScreenActivity" />
         <activity android:name=".SignUpScreenActivity" />
 

@@ -19,15 +19,23 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
+import com.bumptech.glide.Glide;
 import com.firebase.client.AuthData;
+import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
+import com.firebase.client.FirebaseError;
+import com.firebase.client.MutableData;
 import com.firebase.client.Query;
+import com.firebase.client.Transaction;
+import com.firebase.client.ValueEventListener;
 import com.firebase.ui.FirebaseRecyclerAdapter;
-
+import java.util.List;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -36,24 +44,212 @@ public class MainActivity extends AppCompatActivity {
 
     private RecyclerView postsRecyclerView;
     private FirebaseRecyclerAdapter<MountainPost, PostsViewHolder> recyclerAdapater;
-
     private String mName;
-
     private Toolbar toolbar;
     private CollapsingToolbarLayout collapseLayout;
     private FloatingActionButton fab;
     private Firebase adapterRoot;
     private Query adapterRootQuery;
 
-    private int currentPosition;
+    private int LIMIT = 15;
 
 
     @Override
     protected  void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
         final AuthData currUser = fireRoot.getAuth();
+        initLayout();
+
+        if (collapseLayout != null) {
+            adapterRoot = fireRoot.child("mountain").child(mName).child("posts");
+        }
+
+        adapterRootQuery = adapterRoot.limitToLast(LIMIT);
+
+        this.recyclerAdapater = new FirebaseRecyclerAdapter<MountainPost, PostsViewHolder>(MountainPost.class, R.layout.posts_view, PostsViewHolder.class, adapterRootQuery) {
+            @Override
+            public void populateViewHolder(PostsViewHolder postsViewHolder, MountainPost mountainPost, int position) {
+                Log.d("number viewholder: ", "" + recyclerAdapater.getItemCount());
+                MountainPost currPost = recyclerAdapater.getItem(position);
+
+                postsViewHolder.setCurrPost(currPost);
+                postsViewHolder.setFirebaseRoot(adapterRoot);
+                postsViewHolder.postText.setText(mountainPost.getLine());
+                postsViewHolder.authorText.setText(mountainPost.getAuthor());
+
+                /*
+                if(mountainPost.getComments() != null) {
+                    postsViewHolder.numComments.setText(mountainPost.getComments().size());
+                }
+                else {
+                    postsViewHolder.numComments.setText("0");
+                }
+                */
+                //postsViewHolder.numComments.setText(0);
+                postsViewHolder.numLikes.setText(Integer.toString(mountainPost.getLikes()));
+            }
+        };
+
+        this.postsRecyclerView.setAdapter(this.recyclerAdapater);
+
+
+        /*
+        this.adapterRoot.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for (DataSnapshot child: dataSnapshot.getChildren()) {
+                    Log.d("Post: ", child.toString());
+                }
+            }
+
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+                Log.e("Cancel:", firebaseError.toString());
+            }
+        }); */
+
+
+        fab = (FloatingActionButton) findViewById(R.id.fab);
+        setupFAB(fab, currUser);
+    }
+
+
+    public static class PostsViewHolder extends RecyclerView.ViewHolder implements RadioGroup.OnCheckedChangeListener {
+        private TextView postText;
+        private TextView authorText;
+        private TextView numComments;
+        private TextView numLikes;
+        private RadioGroup likeGroup;
+        private RadioButton likeButton;
+        private RadioButton dislikeButton;
+        private Firebase rootRef;
+        private MountainPost currPost;
+
+        public PostsViewHolder(View itemView) {
+            super(itemView);
+            postText = (TextView) itemView.findViewById(R.id.lineTextView);
+            authorText = (TextView) itemView.findViewById(R.id.authorTextView);
+            //numComments = (TextView) itemView.findViewById(R.id.numCommentsTextView);
+            numLikes = (TextView) itemView.findViewById(R.id.numLikesTextView);
+            likeGroup = (RadioGroup) itemView.findViewById(R.id.likeRadioGroup);
+            likeButton = (RadioButton) itemView.findViewById(R.id.likeRadioButton);
+            dislikeButton = (RadioButton) itemView.findViewById(R.id.dislikeRadioButton);
+            likeGroup.setOnCheckedChangeListener(this);
+            likeGroup.setSaveEnabled(true);
+        }
+
+        public void setFirebaseRoot(Firebase root) {
+            this.rootRef = root;
+        }
+
+        public void setCurrPost(MountainPost mp) {
+            this.currPost = mp;
+        }
+
+
+        @Override
+        public void onCheckedChanged(RadioGroup group, int checkedId) {
+
+            if (checkedId == R.id.likeRadioButton) {
+                likeButton.toggle();
+                likeTransaction();
+            }
+
+            else if (checkedId == R.id.dislikeRadioButton) {
+                dislikeButton.toggle();
+                dislikeTransaction();
+            }
+
+            //cant do this anywhere but need to do it WTF!!!!!
+            //rootRef.removeEventListener(likeListener);
+
+        }
+
+
+        public void likeTransaction() {
+            this.rootRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    Firebase updateRef = null;
+                    for (final DataSnapshot postSnapshot: dataSnapshot.getChildren()) {
+                        Log.d("likedPost: ", postSnapshot.toString());
+
+                        if (currPost.equals(postSnapshot.getValue(MountainPost.class))) {
+                            updateRef = rootRef.child(postSnapshot.getKey()).child("likes");
+                        }
+                    }
+
+                    assert updateRef != null;
+                    updateRef.runTransaction(new Transaction.Handler() {
+                        @Override
+                        public Transaction.Result doTransaction(MutableData mutableData) {
+                            if (mutableData.getValue() == null) {
+                                mutableData.setValue(1);
+                            } else {
+                                mutableData.setValue((Long) mutableData.getValue() + 1);
+                            }
+
+                            return Transaction.success(mutableData);
+                        }
+
+                        @Override
+                        public void onComplete(FirebaseError firebaseError, boolean b, DataSnapshot dataSnapshot) {
+                            Log.d("Liked: ", "");
+                        }
+                    });
+                }
+
+                @Override
+                public void onCancelled(FirebaseError firebaseError) {
+                    Log.e("Cancel:", firebaseError.toString());
+                }
+            });
+        }
+
+        public void dislikeTransaction() {
+            this.rootRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    Firebase updateRef = null;
+                    for (final DataSnapshot postSnapshot: dataSnapshot.getChildren()) {
+                        Log.d("dislikedPost: ", postSnapshot.toString());
+
+                        if (currPost.equals(postSnapshot.getValue(MountainPost.class))) {
+                            updateRef = rootRef.child(postSnapshot.getKey()).child("likes");
+                        }
+                    }
+
+                    assert updateRef != null;
+                    updateRef.runTransaction(new Transaction.Handler() {
+                        @Override
+                        public Transaction.Result doTransaction(MutableData mutableData) {
+                            if (mutableData.getValue() == null) {
+                                mutableData.setValue(1);
+                            } else {
+                                mutableData.setValue((Long) mutableData.getValue() - 1);
+                            }
+
+                            return Transaction.success(mutableData);
+                        }
+
+                        @Override
+                        public void onComplete(FirebaseError firebaseError, boolean b, DataSnapshot dataSnapshot) {
+                            Log.d("Disliked: ", "");
+                        }
+                    });
+                }
+
+                @Override
+                public void onCancelled(FirebaseError firebaseError) {
+                    Log.e("Cancel:", firebaseError.toString());
+                }
+            });
+        }
+    }
+
+
+    public void initLayout() {
+        setContentView(R.layout.activity_main);
 
         LinearLayoutManager lm = new LinearLayoutManager(this);
         lm.setOrientation(LinearLayoutManager.VERTICAL);
@@ -70,17 +266,13 @@ public class MainActivity extends AppCompatActivity {
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
             mName = extras.getString("MOUNTAIN_NAME");
-            collapseLayout.setTitle(mName);
-
-        }
-        else {
-            collapseLayout.setTitle("THIS IS COOL");
         }
 
 
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        toolbar.setNavigationIcon(getResources().getDrawable(R.drawable.ic_back_arrow));
+        //toolbar.setNavigationIcon(getResources().getDrawable(R.drawable.ic_back_arrow));
+        toolbar.setNavigationIcon(ContextCompat.getDrawable(MainActivity.this, R.drawable.ic_back_arrow));
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -88,106 +280,75 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        //glide to change image
-        //ImageView header = (ImageView) findViewById(R.id.headerImage);
+        ImageView header = (ImageView) findViewById(R.id.headerImage);
+        Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.heavenly);
 
-        Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.squaw);
+        Log.d("test", "");
+
+        assert header != null;
+        switch(mName) {
+
+            case "Heavenly":
+                Glide.with(this).load(R.drawable.heavenly).into(header);
+                bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.heavenly);
+                break;
+            case "Kirkwood":
+                Glide.with(this).load(R.drawable.kirkwood).into(header);
+                bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.kirkwood);
+                break;
+            case "Mammoth":
+                Glide.with(this).load(R.drawable.mammoth).into(header);
+                bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.mammoth);
+                break;
+            case "Northstar":
+                Glide.with(this).load(R.drawable.northstar).into(header);
+                bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.northstar);
+                break;
+            case "Sierra-at-Tahoe":
+                Glide.with(this).load(R.drawable.sierra).into(header);
+                bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.sierra);
+                break;
+            case "Squaw Valley":
+                Glide.with(this).load(R.drawable.squaw).into(header);
+                bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.squaw);
+                break;
+            case "Alpine Meadows":
+                Glide.with(this).load(R.drawable.alpinemeadows).into(header);
+                bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.alpinemeadows);
+                break;
+            case "Sugar Bowl":
+                Glide.with(this).load(R.drawable.sugarbowl).into(header);
+                bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.sugarbowl);
+                break;
+            default:
+                break;
+        }
 
         Palette.from(bitmap).generate(new Palette.PaletteAsyncListener() {
             @Override
             public void onGenerated(Palette palette) {
-                int mutedColor = palette.getMutedColor(ContextCompat.getColor(MainActivity.this, R.color.primary_500));
-                collapseLayout.setContentScrimColor(mutedColor);
+                //int mutedColor = palette.getMutedColor(ContextCompat.getColor(MainActivity.this, R.color.primary_500));
+                if (palette != null) {
+                    List<Palette.Swatch> swatchList = palette.getSwatches();
+                    int maxPop = 0;
+                    int maxPosition = 0;
+                    int count = 0;
+                    for (Palette.Swatch s : swatchList) {
+                        if (s.getPopulation() > maxPop) {
+                            maxPop = s.getPopulation();
+                            maxPosition = count;
+                        }
+                        count++;
+                    }
+
+                    collapseLayout.setExpandedTitleColor(swatchList.get(maxPosition).getTitleTextColor());
+                    collapseLayout.setContentScrimColor(swatchList.get(maxPosition).getRgb());
+                    collapseLayout.setTitle(mName);
+                }
             }
         });
-
-
-        if (collapseLayout != null) {
-            adapterRoot = fireRoot.child("mountain").child(collapseLayout.getTitle().toString()).child("posts");
-        }
-        //TODO
-        //change limit value to be a variable that is also used in the scroll to function
-        adapterRootQuery = adapterRoot.limitToLast(15);
-
-        this.recyclerAdapater = new FirebaseRecyclerAdapter<MountainPost, PostsViewHolder>(MountainPost.class, R.layout.posts_view, PostsViewHolder.class, adapterRootQuery) {
-            @Override
-            public void populateViewHolder(PostsViewHolder postsViewHolder, MountainPost mountainPost, int position) {
-                Log.d("number viewholder: ", "" + recyclerAdapater.getItemCount());
-                currentPosition = position;
-                postsViewHolder.postText.setText(mountainPost.getLine());
-                postsViewHolder.authorText.setText(mountainPost.getAuthor());
-
-                if(mountainPost.getComments() != null) {
-                    postsViewHolder.numComments.setText(mountainPost.getComments().size());
-                }
-                else {
-                    postsViewHolder.numComments.setText("0");
-                }
-
-                postsViewHolder.numLikes.setText(Integer.toString(mountainPost.getLikes()));
-            }
-        };
-
-        this.postsRecyclerView.setAdapter(this.recyclerAdapater);
-
-        fab = (FloatingActionButton) findViewById(R.id.fab);
-        setupFAB(fab, currUser);
-
     }
 
-
-    public static class PostsViewHolder extends RecyclerView.ViewHolder implements RadioGroup.OnCheckedChangeListener {
-        private TextView postText;
-        private TextView authorText;
-        private TextView numComments;
-        private TextView numLikes;
-        private RadioGroup likeGroup;
-        private RadioButton likeButton;
-        private RadioButton dislikeButton;
-
-        public PostsViewHolder(View itemView) {
-            super(itemView);
-            postText = (TextView) itemView.findViewById(R.id.lineTextView);
-            authorText = (TextView) itemView.findViewById(R.id.authorTextView);
-            numComments = (TextView) itemView.findViewById(R.id.numCommentsTextView);
-            numLikes = (TextView) itemView.findViewById(R.id.numLikesTextView);
-            likeGroup = (RadioGroup) itemView.findViewById(R.id.likeRadioGroup);
-            likeButton = (RadioButton) itemView.findViewById(R.id.likeRadioButton);
-            dislikeButton = (RadioButton) itemView.findViewById(R.id.dislikeRadioButton);
-            likeGroup.setOnCheckedChangeListener(this);
-        }
-
-        @Override
-        public void onCheckedChanged(RadioGroup group, int checkedId) {
-            int nLikes = Integer.parseInt(numLikes.getText().toString());
-            int newLikes = 0;
-
-            if (likeButton.isChecked() == true) {
-                if (checkedId == R.id.likeRadioButton) {
-                    likeGroup.clearCheck();
-                    newLikes = nLikes - 1;
-                }
-                else if (checkedId == R.id.dislikeRadioButton) {
-                    dislikeButton.toggle();
-                    newLikes = nLikes - 2;
-                }
-            }
-
-            if (checkedId == R.id.likeRadioButton) {
-                likeButton.toggle();
-                newLikes = nLikes + 1;
-
-            }
-            else if (checkedId == R.id.dislikeRadioButton) {
-                dislikeButton.toggle();
-                newLikes = nLikes - 1;
-            }
-
-            numLikes.setText(Integer.toString(newLikes));
-
-
-        }
-    }
 
     public void setupFAB(FloatingActionButton fab, final AuthData currUser) {
         fab.setOnClickListener(new View.OnClickListener() {
@@ -205,11 +366,12 @@ public class MainActivity extends AppCompatActivity {
                         .setCancelable(false)
                         .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
-                                //TODO
-                                postsRecyclerView.smoothScrollToPosition(15); //change this to be whatever the limit value is
+                                postsRecyclerView.smoothScrollToPosition(LIMIT);
                                 MountainPost mp = new MountainPost(postInput.getText().toString().trim(), (String)currUser.getProviderData().get("email"));
-                                //Log.d("comments: ", "" + mp.getComments().size());
-                                adapterRoot.push().setValue(mp);
+                                Firebase newRef = adapterRoot.push();
+
+                                newRef.setValue(mp);
+                                Log.d("fabAddKey: ", newRef.getKey());
                             }
                         })
                         .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
