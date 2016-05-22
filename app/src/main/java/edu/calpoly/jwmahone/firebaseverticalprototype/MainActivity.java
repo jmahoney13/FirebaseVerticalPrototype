@@ -39,7 +39,10 @@ import com.firebase.client.Query;
 import com.firebase.client.Transaction;
 import com.firebase.client.ValueEventListener;
 import com.firebase.ui.FirebaseRecyclerAdapter;
+
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -79,23 +82,56 @@ public class MainActivity extends AppCompatActivity {
                 MountainPost currPost = recyclerAdapater.getItem(position);
 
                 postsViewHolder.setCurrPost(currPost);
+                postsViewHolder.setFirebaseUser(currUser);
                 postsViewHolder.setFirebaseRoot(adapterRoot);
                 postsViewHolder.setContext(MainActivity.this);
                 postsViewHolder.setMountainName(mName);
                 postsViewHolder.postText.setText(mountainPost.getLine());
                 postsViewHolder.authorText.setText(mountainPost.getAuthor());
                 postsViewHolder.likeGroup.clearCheck();
-
-                /*
-                if(mountainPost.getComments() != null) {
-                    postsViewHolder.numComments.setText(mountainPost.getComments().size());
-                }
-                else {
-                    postsViewHolder.numComments.setText("0");
-                }
-                */
-                //postsViewHolder.numComments.setText(0);
                 postsViewHolder.numLikes.setText(Integer.toString(mountainPost.getLikes()));
+
+                Firebase ref = new Firebase(FIREBASEURL);
+                final Firebase historyRoot = ref.child("history");
+
+                historyRoot.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        Firebase newRoot = null;
+                        String currEmail = (String)currUser.getProviderData().get("email");
+                        currEmail = currEmail.replace(".", ",");
+
+                        for (DataSnapshot snapshot: dataSnapshot.getChildren()) {
+                            if (currEmail.equals(snapshot.getKey())) {
+                                newRoot = historyRoot.child(snapshot.getKey());
+                            }
+                        }
+
+                        if (newRoot != null) {
+                            newRoot.addListenerForSingleValueEvent(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(DataSnapshot dataSnapshot) {
+                                    for (DataSnapshot likeHistory: dataSnapshot.getChildren()) {
+                                        Log.d("History: ", likeHistory.toString());
+                                    }
+                                }
+
+                                @Override
+                                public void onCancelled(FirebaseError firebaseError) {
+
+                                }
+                            });
+                        }
+
+                    }
+
+                    @Override
+                    public void onCancelled(FirebaseError firebaseError) {
+
+                    }
+                });
+
+
             }
         };
 
@@ -118,6 +154,7 @@ public class MainActivity extends AppCompatActivity {
         private MountainPost currPost;
         private Context context;
         private String mountain;
+        private AuthData user;
 
         public PostsViewHolder(View itemView) {
             super(itemView);
@@ -132,6 +169,15 @@ public class MainActivity extends AppCompatActivity {
             likeGroup.setOnCheckedChangeListener(this);
             itemView.setClickable(true);
             itemView.setOnLongClickListener(this);
+
+
+
+
+
+        }
+
+        public void setFirebaseUser(AuthData user) {
+            this.user = user;
         }
 
         public void setFirebaseRoot(Firebase root) {
@@ -153,8 +199,10 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onCheckedChanged(RadioGroup group, int checkedId) {
             Log.d("radio: ", "onCheckedChanged");
+
             if (checkedId == R.id.likeRadioButton) {
                 likeTransaction();
+
             }
 
             else if (checkedId == R.id.dislikeRadioButton) {
@@ -172,6 +220,7 @@ public class MainActivity extends AppCompatActivity {
 
                         if (currPost.equals(postSnapshot.getValue(MountainPost.class))) {
                             updateRef = rootRef.child(postSnapshot.getKey()).child("likes");
+                            updateHistory(postSnapshot, user, 1);
                         }
                     }
 
@@ -212,6 +261,7 @@ public class MainActivity extends AppCompatActivity {
 
                         if (currPost.equals(postSnapshot.getValue(MountainPost.class))) {
                             updateRef = rootRef.child(postSnapshot.getKey()).child("likes");
+                            updateHistory(postSnapshot, user, 0);
                         }
                     }
 
@@ -240,6 +290,17 @@ public class MainActivity extends AppCompatActivity {
                     Log.e("Cancel:", firebaseError.toString());
                 }
             });
+        }
+
+        public void updateHistory(DataSnapshot postSnapshot, AuthData user, int liked) {
+            Firebase mainRef = new Firebase(FIREBASEURL);
+            String email = (String)user.getProviderData().get("email");
+            email = email.replace(".", ",");
+            final Firebase historyRef = mainRef.child("history").child(email);
+
+            Map<String, Object> likeStatus = new HashMap<>();
+            likeStatus.put(postSnapshot.getKey(), liked);
+            historyRef.updateChildren(likeStatus);
         }
 
         @Override
