@@ -77,9 +77,9 @@ public class MainActivity extends AppCompatActivity {
 
         this.recyclerAdapater = new FirebaseRecyclerAdapter<MountainPost, PostsViewHolder>(MountainPost.class, R.layout.posts_view, PostsViewHolder.class, adapterRootQuery) {
             @Override
-            public void populateViewHolder(PostsViewHolder postsViewHolder, MountainPost mountainPost, int position) {
-                Log.d("number viewholder: ", "" + recyclerAdapater.getItemCount());
-                MountainPost currPost = recyclerAdapater.getItem(position);
+            public void populateViewHolder(final PostsViewHolder postsViewHolder, MountainPost mountainPost, int position) {
+                //Log.d("number viewholder: ", "" + recyclerAdapater.getItemCount());
+                final MountainPost currPost = recyclerAdapater.getItem(position);
 
                 postsViewHolder.setCurrPost(currPost);
                 postsViewHolder.setFirebaseUser(currUser);
@@ -100,10 +100,12 @@ public class MainActivity extends AppCompatActivity {
                         Firebase newRoot = null;
                         String currEmail = (String)currUser.getProviderData().get("email");
                         currEmail = currEmail.replace(".", ",");
+                        String currKey;
 
                         for (DataSnapshot snapshot: dataSnapshot.getChildren()) {
                             if (currEmail.equals(snapshot.getKey())) {
-                                newRoot = historyRoot.child(snapshot.getKey());
+                                currKey = snapshot.getKey();
+                                newRoot = historyRoot.child(currKey);
                             }
                         }
 
@@ -111,8 +113,25 @@ public class MainActivity extends AppCompatActivity {
                             newRoot.addListenerForSingleValueEvent(new ValueEventListener() {
                                 @Override
                                 public void onDataChange(DataSnapshot dataSnapshot) {
-                                    for (DataSnapshot likeHistory: dataSnapshot.getChildren()) {
-                                        Log.d("History: ", likeHistory.toString());
+
+                                    Map<String, Object> history = (Map<String, Object>) dataSnapshot.getValue();
+                                    Log.d("History: ", history.toString());
+
+                                    for (Map.Entry<String, Object> entry: history.entrySet()) {
+                                        if (entry.getKey().equals(currPost.getID())) {
+                                            if (((Long)(entry.getValue())) == 1) {
+                                                Log.d(currPost.getID(), "liked!!!!!");
+                                                postsViewHolder.likeButton.setChecked(true);
+                                                postsViewHolder.likeButton.setEnabled(false);
+                                                postsViewHolder.dislikeButton.setEnabled(false);
+                                            }
+                                            else if (((Long)(entry.getValue())) == 0) {
+                                                Log.d(currPost.getID(), "disssssliked!!!!!");
+                                                postsViewHolder.dislikeButton.setChecked(true);
+                                                postsViewHolder.likeButton.setEnabled(false);
+                                                postsViewHolder.dislikeButton.setEnabled(false);
+                                            }
+                                        }
                                     }
                                 }
 
@@ -131,7 +150,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
 
-
+                postsViewHolder.setRadioGroupListener();
             }
         };
 
@@ -166,14 +185,12 @@ public class MainActivity extends AppCompatActivity {
             likeButton = (RadioButton) itemView.findViewById(R.id.likeRadioButton);
             dislikeButton = (RadioButton) itemView.findViewById(R.id.dislikeRadioButton);
 
-            likeGroup.setOnCheckedChangeListener(this);
             itemView.setClickable(true);
             itemView.setOnLongClickListener(this);
+        }
 
-
-
-
-
+        public void setRadioGroupListener() {
+            likeGroup.setOnCheckedChangeListener(this);
         }
 
         public void setFirebaseUser(AuthData user) {
@@ -200,13 +217,14 @@ public class MainActivity extends AppCompatActivity {
         public void onCheckedChanged(RadioGroup group, int checkedId) {
             Log.d("radio: ", "onCheckedChanged");
 
-            if (checkedId == R.id.likeRadioButton) {
-                likeTransaction();
+            if (likeButton.isPressed() || dislikeButton.isPressed()) {
+                Log.d("pressed: ", "pressed!!!");
+                if (checkedId == R.id.likeRadioButton) {
+                    likeTransaction();
 
-            }
-
-            else if (checkedId == R.id.dislikeRadioButton) {
-                dislikeTransaction();
+                } else if (checkedId == R.id.dislikeRadioButton) {
+                    dislikeTransaction();
+                }
             }
         }
 
@@ -242,6 +260,7 @@ public class MainActivity extends AppCompatActivity {
                             Log.d("Liked: ", "");
                         }
                     });
+
                 }
 
                 @Override
@@ -465,11 +484,12 @@ public class MainActivity extends AppCompatActivity {
                         .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
                                 postsRecyclerView.smoothScrollToPosition(LIMIT);
-                                MountainPost mp = new MountainPost(postInput.getText().toString().trim(), (String)currUser.getProviderData().get("email"));
                                 Firebase newRef = adapterRoot.push();
+                                Log.d("fabAddKey: ", newRef.getKey());
+                                MountainPost mp = new MountainPost(postInput.getText().toString().trim(), (String)currUser.getProviderData().get("email"), newRef.getKey());
 
                                 newRef.setValue(mp);
-                                Log.d("fabAddKey: ", newRef.getKey());
+
                             }
                         })
                         .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {

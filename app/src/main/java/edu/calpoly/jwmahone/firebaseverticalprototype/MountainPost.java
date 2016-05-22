@@ -12,18 +12,27 @@ public class MountainPost implements Serializable {
     //private ArrayList<String> comments;
     //private List<String> comments;
     private int likes;
+    private String postID;
 
     public MountainPost() {
 
     }
 
-    public MountainPost(String line, String author) {
+    public MountainPost(String line, String author, String id) {
         this.line = line;
         this.author = author;
         //this.comments = new ArrayList<>();
         this.likes = 0;
+        this.postID = id;
     }
 
+    public void setID(String id) {
+        this.postID = id;
+    }
+
+    public String getID() {
+        return this.postID;
+    }
 
     public String getLine() {
         return this.line;
@@ -75,6 +84,9 @@ public class MountainPost implements Serializable {
             return false;
         }
         if (!(this.likes == (((MountainPost)o).likes))) {
+            return false;
+        }
+        if (!(this.postID.equals(((MountainPost)o).postID))) {
             return false;
         }
 
