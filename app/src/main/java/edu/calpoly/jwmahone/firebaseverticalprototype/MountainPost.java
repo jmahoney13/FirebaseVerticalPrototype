@@ -1,10 +1,7 @@
 package edu.calpoly.jwmahone.firebaseverticalprototype;
 
-import com.firebase.client.Firebase;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 
 public class MountainPost implements Serializable {
     private String line;
@@ -61,15 +58,14 @@ public class MountainPost implements Serializable {
     public void dislike() {
         this.likes -= 1;
     }
-/*
-    public void addComment(String comment) {
-        this.comments.add(comment);
-    }
-
-    public List<String> getComments() {
-        return this.comments;
-    }
-*/
+    /*
+        public void addComment(String comment) {
+            this.comments.add(comment);
+        }
+        public List<String> getComments() {
+            return this.comments;
+        }
+    */
     public boolean equals(Object o) {
         if (o == null) {
             return false;

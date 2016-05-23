@@ -11,24 +11,69 @@
     tools:context="edu.calpoly.jwmahone.firebaseverticalprototype.CommentsActivity"
     android:orientation="vertical">
 
-    <TextView
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Comments Activity"/>
+        android:orientation="vertical"
+        android:background="#B3E5FC"
+        android:padding="5dp">
 
-    <TextView android:id="@+id/lineView"
+        <TextView android:id="@+id/lineView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textStyle="bold"
+            android:textSize="18sp"
+            android:text="This is the post that will show up"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView android:id="@+id/authorView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:textStyle="italic"
+                android:text="joebob111"/>
+
+            <TextView android:id="@+id/likesView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="Likes: 1"
+                android:layout_marginLeft="20dp"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/commentsRecyclerView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="40dp"/>
+        android:layout_marginTop="5dp"/>
 
-    <TextView android:id="@+id/authorView"
+    <RelativeLayout android:id="@+id/addCommentLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="40dp"/>
+        android:layout_alignParentBottom="true">
 
-    <TextView android:id="@+id/likesView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="40dp"/>
+        <LinearLayout android:id="@+id/commentBarLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
 
+            <Button android:id="@+id/addCommentButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Add"/>
+
+            <EditText android:id="@+id/commentEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Add your comment"/>
+
+        </LinearLayout>
+    </RelativeLayout>
 </LinearLayout>

@@ -1,45 +1,38 @@
 package edu.calpoly.jwmahone.firebaseverticalprototype;
 
 import android.content.Intent;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
-import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.Toolbar;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import com.firebase.client.Firebase;
+import com.firebase.ui.FirebaseRecyclerAdapter;
+import java.util.HashMap;
 
 public class CommentsActivity extends AppCompatActivity {
     private Firebase fireRoot = new Firebase(MainActivity.FIREBASEURL);
-
-    private Toolbar toolbar;
     private String mName;
     private MountainPost commentPost;
-
+    private FirebaseRecyclerAdapter<Comment, CommentViewHolder> commentAdapter;
+    private RecyclerView commentsRecyclerView;
+    private EditText commentEditText;
+    private Button addButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_comments);
 
-        //this.toolbar = (Toolbar) findViewById(R.id.toolbarWidget);
-        //setSupportActionBar(this.toolbar);
-        //toolbar.setNavigationIcon(ContextCompat.getDrawable(CommentsActivity.this, R.drawable.ic_back_arrow));
         ActionBar actionBar = getSupportActionBar();
         actionBar.setDisplayHomeAsUpEnabled(true);
-
-/*
-        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                onBackPressed();
-            }
-        }); */
 
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
@@ -48,18 +41,57 @@ public class CommentsActivity extends AppCompatActivity {
         }
         actionBar.setTitle(mName);
 
+        LinearLayoutManager lm = new LinearLayoutManager(this);
+        lm.setOrientation(LinearLayoutManager.VERTICAL);
+        lm.setStackFromEnd(true);
+
         TextView lineTV = (TextView) findViewById(R.id.lineView);
         TextView authTV = (TextView) findViewById(R.id.authorView);
         TextView likesTV = (TextView) findViewById(R.id.likesView);
+        this.commentsRecyclerView = (RecyclerView) findViewById(R.id.commentsRecyclerView);
+        this.commentsRecyclerView.setHasFixedSize(false);
+        this.commentsRecyclerView.setLayoutManager(lm);
 
-        lineTV.setText("Line: " + commentPost.getLine());
-        authTV.setText("Author: " + commentPost.getAuthor());
+        this.commentEditText = (EditText) findViewById(R.id.commentEditText);
+        this.addButton = (Button) findViewById(R.id.addCommentButton);
+
+        lineTV.setText(commentPost.getLine());
+        authTV.setText(commentPost.getAuthor());
         likesTV.setText("Likes: " + commentPost.getLikes());
 
+        final Firebase adapterRef = fireRoot.child("comments").child(commentPost.getID());
 
-        //toolbar.setTitle(mName);
-        //toolbar.setBackgroundColor(ContextCompat.getColor(CommentsActivity.this, R.color.primary_700));
+        this.commentAdapter = new FirebaseRecyclerAdapter<Comment, CommentViewHolder>(Comment.class, R.layout.comment_view, CommentViewHolder.class, adapterRef) {
+            @Override
+            protected void populateViewHolder(CommentViewHolder commentViewHolder, Comment comment, int position) {
+                String commentStr = comment.getComment();
+                commentViewHolder.comment.setText(commentStr);
+            }
+        };
 
+        this.commentsRecyclerView.setAdapter(this.commentAdapter);
+
+        this.addButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String comment = commentEditText.getText().toString();
+                Firebase pushcommentRef = adapterRef.push();
+                Comment currComment = new Comment(pushcommentRef.getKey(), comment);
+                pushcommentRef.setValue(currComment);
+                commentEditText.setText("");
+            }
+        });
+
+
+    }
+
+    public static class CommentViewHolder extends RecyclerView.ViewHolder {
+        private TextView comment;
+
+        public CommentViewHolder(View itemView) {
+            super(itemView);
+            this.comment = (TextView) itemView.findViewById(R.id.commentTV);
+        }
     }
 
     @Override
