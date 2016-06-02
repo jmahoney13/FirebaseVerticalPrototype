@@ -16,7 +16,8 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:background="#B3E5FC"
-        android:padding="5dp">
+        android:padding="5dp"
+        android:elevation="12dp">
 
         <TextView android:id="@+id/lineView"
             android:layout_width="match_parent"
@@ -52,12 +53,15 @@
         android:id="@+id/commentsRecyclerView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="5dp"/>
+        android:layout_marginTop="5dp"
+        android:layout_weight="1"/>
 
     <RelativeLayout android:id="@+id/addCommentLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true">
+        android:layout_alignParentBottom="true"
+        android:background="#EEEEEE"
+        android:elevation="12dp">
 
         <LinearLayout android:id="@+id/commentBarLayout"
             android:layout_width="match_parent"
@@ -72,7 +76,9 @@
             <EditText android:id="@+id/commentEditText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Add your comment"/>
+                android:hint="Add your comment">
+                <requestFocus></requestFocus>
+            </EditText>
 
         </LinearLayout>
     </RelativeLayout>

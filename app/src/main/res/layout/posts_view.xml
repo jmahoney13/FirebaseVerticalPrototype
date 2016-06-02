@@ -5,7 +5,8 @@
     android:layout_height="wrap_content"
     android:background="#B3E5FC"
     android:layout_margin="7.5dp"
-    android:padding="10dp">
+    android:padding="10dp"
+    android:elevation="8dp">
 
     <LinearLayout android:id="@+id/leftLayoutContent"
         android:layout_width="wrap_content"
