@@ -85,6 +85,41 @@ public class MainActivity extends AppCompatActivity {
                 postsViewHolder.likeGroup.clearCheck();
                 postsViewHolder.numLikes.setText(Integer.toString(mountainPost.getLikes()));
 
+                /*----------------------------------------------------------------------------------------------------------------------------*/
+                final DatabaseReference commentRef = FirebaseDatabase.getInstance().getReference().child("comments");
+                commentRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        for (DataSnapshot snapshot: dataSnapshot.getChildren()) {
+                            if (snapshot.getKey().equals(currPost.getID())) {
+                                DatabaseReference innerTree = commentRef.child(snapshot.getKey());
+                                innerTree.addListenerForSingleValueEvent(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(DataSnapshot dataSnapshot) {
+                                        long commentCount = 0;
+                                        commentCount = dataSnapshot.getChildrenCount();
+                                        postsViewHolder.numComments.setText(Long.toString(commentCount));
+                                    }
+
+                                    @Override
+                                    public void onCancelled(DatabaseError databaseError) {
+
+                                    }
+                                });
+                            }
+                            else {
+                                postsViewHolder.numComments.setText("0");
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+                /*----------------------------------------------------------------------------------------------------------------------------*/
+
                 DatabaseReference ref = FirebaseDatabase.getInstance().getReference();
                 final DatabaseReference historyRoot = ref.child("history");
 
@@ -175,11 +210,12 @@ public class MainActivity extends AppCompatActivity {
             super(itemView);
             postText = (TextView) itemView.findViewById(R.id.lineTextView);
             authorText = (TextView) itemView.findViewById(R.id.authorTextView);
-            //numComments = (TextView) itemView.findViewById(R.id.numCommentsTextView);
+            numComments = (TextView) itemView.findViewById(R.id.numCommentsTextView);
             numLikes = (TextView) itemView.findViewById(R.id.numLikesTextView);
             likeGroup = (RadioGroup) itemView.findViewById(R.id.likeRadioGroup);
             likeButton = (RadioButton) itemView.findViewById(R.id.likeRadioButton);
             dislikeButton = (RadioButton) itemView.findViewById(R.id.dislikeRadioButton);
+            numComments = (TextView) itemView.findViewById(R.id.numCommentsTextView);
 
             itemView.setClickable(true);
             itemView.setOnLongClickListener(this);
