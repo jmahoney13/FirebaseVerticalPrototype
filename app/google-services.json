@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "265227734826",
+    "firebase_url": "https://popping-inferno-9423.firebaseio.com",
+    "project_id": "popping-inferno-9423",
+    "storage_bucket": "popping-inferno-9423.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:265227734826:android:32e870e065c60f02",
+        "android_client_info": {
+          "package_name": "edu.calpoly.jwmahone.firebaseverticalprototype"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "265227734826-5kkglsvanihcj4ampni20vaarasfm3ep.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCcW6saj5ghueJuprCPHb-UI4u-msuCCyg"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

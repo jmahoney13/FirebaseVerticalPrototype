@@ -28,43 +28,40 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import com.bumptech.glide.Glide;
-import com.firebase.client.AuthData;
-import com.firebase.client.DataSnapshot;
-import com.firebase.client.Firebase;
-import com.firebase.client.FirebaseError;
-import com.firebase.client.MutableData;
-import com.firebase.client.Query;
-import com.firebase.client.Transaction;
-import com.firebase.client.ValueEventListener;
-import com.firebase.ui.FirebaseRecyclerAdapter;
-
+import com.firebase.ui.database.FirebaseRecyclerAdapter;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.database.Transaction;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.MutableData;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 
 public class MainActivity extends AppCompatActivity {
-    public static final String FIREBASEURL = "https://popping-inferno-9423.firebaseio.com/";
-    private Firebase fireRoot = new Firebase(FIREBASEURL);
-
+    private DatabaseReference fireRoot = FirebaseDatabase.getInstance().getReference();
     private RecyclerView postsRecyclerView;
     private FirebaseRecyclerAdapter<MountainPost, PostsViewHolder> recyclerAdapater;
     private String mName;
     private Toolbar toolbar;
     private CollapsingToolbarLayout collapseLayout;
     private FloatingActionButton fab;
-    private Firebase adapterRoot;
+    private DatabaseReference adapterRoot;
     private Query adapterRootQuery;
-
     private int specialColor;
-
     private int LIMIT = 15;
 
 
     @Override
     protected  void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        final AuthData currUser = fireRoot.getAuth();
+        final FirebaseUser currUser = FirebaseAuth.getInstance().getCurrentUser();
         initLayout();
 
         if (collapseLayout != null) {
@@ -76,7 +73,6 @@ public class MainActivity extends AppCompatActivity {
         this.recyclerAdapater = new FirebaseRecyclerAdapter<MountainPost, PostsViewHolder>(MountainPost.class, R.layout.posts_view, PostsViewHolder.class, adapterRootQuery) {
             @Override
             public void populateViewHolder(final PostsViewHolder postsViewHolder, MountainPost mountainPost, int position) {
-                //Log.d("number viewholder: ", "" + recyclerAdapater.getItemCount());
                 final MountainPost currPost = recyclerAdapater.getItem(position);
 
                 postsViewHolder.setCurrPost(currPost);
@@ -89,14 +85,14 @@ public class MainActivity extends AppCompatActivity {
                 postsViewHolder.likeGroup.clearCheck();
                 postsViewHolder.numLikes.setText(Integer.toString(mountainPost.getLikes()));
 
-                Firebase ref = new Firebase(FIREBASEURL);
-                final Firebase historyRoot = ref.child("history");
+                DatabaseReference ref = FirebaseDatabase.getInstance().getReference();
+                final DatabaseReference historyRoot = ref.child("history");
 
                 historyRoot.addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
-                        Firebase newRoot = null;
-                        String currEmail = (String)currUser.getProviderData().get("email");
+                        DatabaseReference newRoot = null;
+                        String currEmail = currUser.getEmail();
                         currEmail = currEmail.replace(".", ",");
                         String currKey;
 
@@ -134,16 +130,18 @@ public class MainActivity extends AppCompatActivity {
                                 }
 
                                 @Override
-                                public void onCancelled(FirebaseError firebaseError) {
+                                public void onCancelled(DatabaseError firebaseError) {
 
                                 }
+
+
                             });
                         }
 
                     }
 
                     @Override
-                    public void onCancelled(FirebaseError firebaseError) {
+                    public void onCancelled(DatabaseError firebaseError) {
 
                     }
                 });
@@ -167,11 +165,11 @@ public class MainActivity extends AppCompatActivity {
         private RadioGroup likeGroup;
         private RadioButton likeButton;
         private RadioButton dislikeButton;
-        private Firebase rootRef;
+        private DatabaseReference rootRef;
         private MountainPost currPost;
         private Context context;
         private String mountain;
-        private AuthData user;
+        private FirebaseUser user;
 
         public PostsViewHolder(View itemView) {
             super(itemView);
@@ -191,11 +189,11 @@ public class MainActivity extends AppCompatActivity {
             likeGroup.setOnCheckedChangeListener(this);
         }
 
-        public void setFirebaseUser(AuthData user) {
+        public void setFirebaseUser(FirebaseUser user) {
             this.user = user;
         }
 
-        public void setFirebaseRoot(Firebase root) {
+        public void setFirebaseRoot(DatabaseReference root) {
             this.rootRef = root;
         }
 
@@ -230,7 +228,7 @@ public class MainActivity extends AppCompatActivity {
             this.rootRef.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
-                    Firebase updateRef = null;
+                    DatabaseReference updateRef = null;
                     for (final DataSnapshot postSnapshot: dataSnapshot.getChildren()) {
                         Log.d("likedPost: ", postSnapshot.toString());
 
@@ -254,7 +252,7 @@ public class MainActivity extends AppCompatActivity {
                         }
 
                         @Override
-                        public void onComplete(FirebaseError firebaseError, boolean b, DataSnapshot dataSnapshot) {
+                        public void onComplete(DatabaseError firebaseError, boolean b, DataSnapshot dataSnapshot) {
                             Log.d("Liked: ", "");
                         }
                     });
@@ -262,7 +260,7 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 @Override
-                public void onCancelled(FirebaseError firebaseError) {
+                public void onCancelled(DatabaseError firebaseError) {
                     Log.e("Cancel:", firebaseError.toString());
                 }
             });
@@ -272,7 +270,7 @@ public class MainActivity extends AppCompatActivity {
             this.rootRef.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
-                    Firebase updateRef = null;
+                    DatabaseReference updateRef = null;
                     for (final DataSnapshot postSnapshot: dataSnapshot.getChildren()) {
                         Log.d("dislikedPost: ", postSnapshot.toString());
 
@@ -296,24 +294,24 @@ public class MainActivity extends AppCompatActivity {
                         }
 
                         @Override
-                        public void onComplete(FirebaseError firebaseError, boolean b, DataSnapshot dataSnapshot) {
+                        public void onComplete(DatabaseError firebaseError, boolean b, DataSnapshot dataSnapshot) {
                             Log.d("Disliked: ", "");
                         }
                     });
                 }
 
                 @Override
-                public void onCancelled(FirebaseError firebaseError) {
+                public void onCancelled(DatabaseError firebaseError) {
                     Log.e("Cancel:", firebaseError.toString());
                 }
             });
         }
 
-        public void updateHistory(DataSnapshot postSnapshot, AuthData user, int liked) {
-            Firebase mainRef = new Firebase(FIREBASEURL);
-            String email = (String)user.getProviderData().get("email");
+        public void updateHistory(DataSnapshot postSnapshot, FirebaseUser user, int liked) {
+            DatabaseReference mainRef = FirebaseDatabase.getInstance().getReference();
+            String email = user.getEmail();
             email = email.replace(".", ",");
-            final Firebase historyRef = mainRef.child("history").child(email);
+            final DatabaseReference historyRef = mainRef.child("history").child(email);
 
             Map<String, Object> likeStatus = new HashMap<>();
             likeStatus.put(postSnapshot.getKey(), liked);
@@ -331,17 +329,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-/*
-    @Override
-    public void onResume() {
-        super.onResume();
-        View mainView = getWindow().getDecorView();
-        mainView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
-        mainView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
-        mainView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN);
-    }
-
-*/
 
     public void initLayout() {
         setContentView(R.layout.activity_main);
@@ -366,7 +353,6 @@ public class MainActivity extends AppCompatActivity {
 
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        //toolbar.setNavigationIcon(getResources().getDrawable(R.drawable.ic_back_arrow));
         toolbar.setNavigationIcon(ContextCompat.getDrawable(MainActivity.this, R.drawable.ic_back_arrow));
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
@@ -377,8 +363,6 @@ public class MainActivity extends AppCompatActivity {
 
         ImageView header = (ImageView) findViewById(R.id.headerImage);
         Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.heavenly);
-
-        Log.d("test", "");
 
         assert header != null;
         switch(mName) {
@@ -465,7 +449,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    public void setupFAB(FloatingActionButton fab, final AuthData currUser) {
+    public void setupFAB(FloatingActionButton fab, final FirebaseUser currUser) {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -482,10 +466,9 @@ public class MainActivity extends AppCompatActivity {
                         .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
                                 postsRecyclerView.smoothScrollToPosition(LIMIT);
-                                Firebase newRef = adapterRoot.push();
+                                DatabaseReference newRef = adapterRoot.push();
                                 Log.d("fabAddKey: ", newRef.getKey());
-                                MountainPost mp = new MountainPost(postInput.getText().toString().trim(), (String)currUser.getProviderData().get("email"), newRef.getKey());
-
+                                MountainPost mp = new MountainPost(postInput.getText().toString().trim(), currUser.getEmail(), newRef.getKey());
                                 newRef.setValue(mp);
 
                             }
@@ -538,7 +521,7 @@ public class MainActivity extends AppCompatActivity {
         int menuItemID = item.getItemId();
 
         if (menuItemID == R.id.logout) {
-            fireRoot.unauth();
+            FirebaseAuth.getInstance().signOut();
             startLogin();
         }
 

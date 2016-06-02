@@ -12,13 +12,14 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import com.firebase.ui.database.FirebaseRecyclerAdapter;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
-import com.firebase.client.Firebase;
-import com.firebase.ui.FirebaseRecyclerAdapter;
-import java.util.HashMap;
 
 public class CommentsActivity extends AppCompatActivity {
-    private Firebase fireRoot = new Firebase(MainActivity.FIREBASEURL);
+    private DatabaseReference fireRoot = FirebaseDatabase.getInstance().getReference();
     private String mName;
     private MountainPost commentPost;
     private FirebaseRecyclerAdapter<Comment, CommentViewHolder> commentAdapter;
@@ -51,7 +52,6 @@ public class CommentsActivity extends AppCompatActivity {
         this.commentsRecyclerView = (RecyclerView) findViewById(R.id.commentsRecyclerView);
         this.commentsRecyclerView.setHasFixedSize(false);
         this.commentsRecyclerView.setLayoutManager(lm);
-
         this.commentEditText = (EditText) findViewById(R.id.commentEditText);
         this.addButton = (Button) findViewById(R.id.addCommentButton);
 
@@ -59,7 +59,7 @@ public class CommentsActivity extends AppCompatActivity {
         authTV.setText(commentPost.getAuthor());
         likesTV.setText("Likes: " + commentPost.getLikes());
 
-        final Firebase adapterRef = fireRoot.child("comments").child(commentPost.getID());
+        final DatabaseReference adapterRef = fireRoot.child("comments").child(commentPost.getID());
 
         this.commentAdapter = new FirebaseRecyclerAdapter<Comment, CommentViewHolder>(Comment.class, R.layout.comment_view, CommentViewHolder.class, adapterRef) {
             @Override
@@ -75,14 +75,12 @@ public class CommentsActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 String comment = commentEditText.getText().toString();
-                Firebase pushcommentRef = adapterRef.push();
+                DatabaseReference pushcommentRef = adapterRef.push();
                 Comment currComment = new Comment(pushcommentRef.getKey(), comment);
                 pushcommentRef.setValue(currComment);
                 commentEditText.setText("");
             }
         });
-
-
     }
 
     public static class CommentViewHolder extends RecyclerView.ViewHolder {
@@ -114,7 +112,7 @@ public class CommentsActivity extends AppCompatActivity {
         int menuItemID = item.getItemId();
 
         if (menuItemID == R.id.logout) {
-            fireRoot.unauth();
+            FirebaseAuth.getInstance().signOut();
             startLogin();
         }
 

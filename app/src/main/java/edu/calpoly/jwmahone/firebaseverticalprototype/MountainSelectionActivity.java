@@ -2,6 +2,7 @@ package edu.calpoly.jwmahone.firebaseverticalprototype;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -10,14 +11,14 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-
-import com.firebase.client.AuthData;
-import com.firebase.client.Firebase;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 
 public class MountainSelectionActivity extends AppCompatActivity {
     private ListView mountainList;
-    private Firebase fireRoot = new Firebase(MainActivity.FIREBASEURL);
+    private FirebaseAuth mAuth;
+    private FirebaseAuth.AuthStateListener mAuthListener;
 
 
     @Override
@@ -25,10 +26,29 @@ public class MountainSelectionActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_mountain_selection);
 
-        final AuthData currUser = fireRoot.getAuth();
+        mAuth = FirebaseAuth.getInstance();
+
+        mAuthListener = new FirebaseAuth.AuthStateListener() {
+            @Override
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+                FirebaseUser user = firebaseAuth.getCurrentUser();
+
+                if (user != null) {
+                    Log.d("user: ", user.getEmail() + " logged in");
+                }
+                else {
+                    Log.d("user is logged out", "");
+                    startLogin();
+                }
+            }
+        };
+
+
+        FirebaseUser currUser = mAuth.getCurrentUser();
         if (currUser == null) {
             startLogin();
         }
+
         Log.d("here", "in selection");
 
         this.mountainList = (ListView) findViewById(android.R.id.list);
@@ -43,6 +63,20 @@ public class MountainSelectionActivity extends AppCompatActivity {
                 startActivity(postScreenActivity);
             }
         });
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        mAuth.addAuthStateListener(mAuthListener);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (mAuthListener != null) {
+            mAuth.removeAuthStateListener(mAuthListener);
+        }
     }
 
     public void startLogin() {
@@ -64,8 +98,7 @@ public class MountainSelectionActivity extends AppCompatActivity {
         int menuItemID = item.getItemId();
 
         if (menuItemID == R.id.logout) {
-            fireRoot.unauth();
-            startLogin();
+            mAuth.signOut();
         }
 
         return super.onOptionsItemSelected(item);
