@@ -56,7 +56,7 @@ public class MainActivity extends AppCompatActivity {
     private DatabaseReference adapterRoot;
     private Query adapterRootQuery;
     private int specialColor;
-    private int LIMIT = 100;
+    private int LIMIT = 15;
     private int postBackgroundColor;
 
 
@@ -147,18 +147,15 @@ public class MainActivity extends AppCompatActivity {
                                 public void onDataChange(DataSnapshot dataSnapshot) {
 
                                     Map<String, Object> history = (Map<String, Object>) dataSnapshot.getValue();
-                                    Log.d("History: ", history.toString());
 
                                     for (Map.Entry<String, Object> entry: history.entrySet()) {
                                         if (entry.getKey().equals(currPost.getID())) {
                                             if (((Long)(entry.getValue())) == 1) {
-                                                Log.d(currPost.getID(), "liked!!!!!");
                                                 postsViewHolder.likeButton.setChecked(true);
                                                 postsViewHolder.likeButton.setEnabled(false);
                                                 postsViewHolder.dislikeButton.setEnabled(false);
                                             }
                                             else if (((Long)(entry.getValue())) == 0) {
-                                                Log.d(currPost.getID(), "disssssliked!!!!!");
                                                 postsViewHolder.dislikeButton.setChecked(true);
                                                 postsViewHolder.likeButton.setEnabled(false);
                                                 postsViewHolder.dislikeButton.setEnabled(false);
@@ -251,18 +248,19 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onCheckedChanged(RadioGroup group, int checkedId) {
-            Log.d("radio: ", "onCheckedChanged");
-
             if (likeButton.isPressed() || dislikeButton.isPressed()) {
                 Log.d("pressed: ", "pressed!!!");
                 if (checkedId == R.id.likeRadioButton) {
                     likeTransaction();
-
-                } else if (checkedId == R.id.dislikeRadioButton) {
+                    //likeButton.setEnabled(false); //TODO
+                }
+                else if (checkedId == R.id.dislikeRadioButton) {
                     dislikeTransaction();
+                    //dislikeButton.setEnabled(false); //TODO
                 }
             }
         }
+
 
         public void likeTransaction() {
             this.rootRef.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -270,7 +268,6 @@ public class MainActivity extends AppCompatActivity {
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     DatabaseReference updateRef = null;
                     for (final DataSnapshot postSnapshot: dataSnapshot.getChildren()) {
-                        Log.d("likedPost: ", postSnapshot.toString());
 
                         if (currPost.equals(postSnapshot.getValue(MountainPost.class))) {
                             updateRef = rootRef.child(postSnapshot.getKey()).child("likes");
@@ -293,7 +290,6 @@ public class MainActivity extends AppCompatActivity {
 
                         @Override
                         public void onComplete(DatabaseError firebaseError, boolean b, DataSnapshot dataSnapshot) {
-                            Log.d("Liked: ", "");
                         }
                     });
 
@@ -312,8 +308,6 @@ public class MainActivity extends AppCompatActivity {
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     DatabaseReference updateRef = null;
                     for (final DataSnapshot postSnapshot: dataSnapshot.getChildren()) {
-                        Log.d("dislikedPost: ", postSnapshot.toString());
-
                         if (currPost.equals(postSnapshot.getValue(MountainPost.class))) {
                             updateRef = rootRef.child(postSnapshot.getKey()).child("likes");
                             updateHistory(postSnapshot, user, 0);
@@ -335,7 +329,6 @@ public class MainActivity extends AppCompatActivity {
 
                         @Override
                         public void onComplete(DatabaseError firebaseError, boolean b, DataSnapshot dataSnapshot) {
-                            Log.d("Disliked: ", "");
                         }
                     });
                 }
@@ -531,7 +524,6 @@ public class MainActivity extends AppCompatActivity {
                             public void onClick(DialogInterface dialog, int id) {
                                 if (!postInput.getText().toString().trim().equals("")) {
                                     DatabaseReference newRef = adapterRoot.push();
-                                    Log.d("fabAddKey: ", newRef.getKey());
                                     MountainPost mp = new MountainPost(postInput.getText().toString().trim(), currUser.getEmail(), newRef.getKey());
                                     newRef.setValue(mp);
                                     postsRecyclerView.smoothScrollToPosition(LIMIT);
