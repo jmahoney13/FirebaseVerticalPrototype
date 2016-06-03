@@ -24,6 +24,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
@@ -55,7 +56,8 @@ public class MainActivity extends AppCompatActivity {
     private DatabaseReference adapterRoot;
     private Query adapterRootQuery;
     private int specialColor;
-    private int LIMIT = 15;
+    private int LIMIT = 100;
+    private int postBackgroundColor;
 
 
     @Override
@@ -84,6 +86,7 @@ public class MainActivity extends AppCompatActivity {
                 postsViewHolder.authorText.setText(mountainPost.getAuthor());
                 postsViewHolder.likeGroup.clearCheck();
                 postsViewHolder.numLikes.setText(Integer.toString(mountainPost.getLikes()));
+                postsViewHolder.mainLayout.setBackgroundColor(postBackgroundColor);
 
                 /*----------------------------------------------------------------------------------------------------------------------------*/
                 final DatabaseReference commentRef = FirebaseDatabase.getInstance().getReference().child("comments");
@@ -192,7 +195,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    public static class PostsViewHolder extends RecyclerView.ViewHolder implements RadioGroup.OnCheckedChangeListener, View.OnLongClickListener {
+    public static class PostsViewHolder extends RecyclerView.ViewHolder implements RadioGroup.OnCheckedChangeListener, View.OnClickListener {
         private TextView postText;
         private TextView authorText;
         private TextView numComments;
@@ -205,6 +208,7 @@ public class MainActivity extends AppCompatActivity {
         private Context context;
         private String mountain;
         private FirebaseUser user;
+        private LinearLayout mainLayout;
 
         public PostsViewHolder(View itemView) {
             super(itemView);
@@ -216,9 +220,9 @@ public class MainActivity extends AppCompatActivity {
             likeButton = (RadioButton) itemView.findViewById(R.id.likeRadioButton);
             dislikeButton = (RadioButton) itemView.findViewById(R.id.dislikeRadioButton);
             numComments = (TextView) itemView.findViewById(R.id.numCommentsTextView);
-
+            mainLayout = (LinearLayout) itemView.findViewById(R.id.mainPostView);
             itemView.setClickable(true);
-            itemView.setOnLongClickListener(this);
+            itemView.setOnClickListener(this);
         }
 
         public void setRadioGroupListener() {
@@ -355,13 +359,12 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        public boolean onLongClick(View v) {
+        public void onClick(View v) {
             //start comments activity
             Intent intent = new Intent(this.context, CommentsActivity.class);
             intent.putExtra("MOUNTAIN_NAME", this.mountain);
             intent.putExtra("MOUNTAIN_POST", currPost);
             this.context.startActivity(intent);
-            return true;
         }
     }
 
@@ -438,6 +441,26 @@ public class MainActivity extends AppCompatActivity {
             default:
                 break;
         }
+/*
+        AppBarLayout.OnOffsetChangedListener mListener;
+        mListener = new AppBarLayout.OnOffsetChangedListener() {
+            @Override
+            public void onOffsetChanged(AppBarLayout appBarLayout, int verticalOffset) {
+                if(collapseLayout.getHeight() + verticalOffset >= 2 * ViewCompat.getMinimumHeight(collapseLayout)) {
+                    getWindow().setStatusBarColor(ContextCompat.getColor(MainActivity.this, android.R.color.transparent));
+                }
+                else {
+                    getWindow().setStatusBarColor(ContextCompat.getColor(MainActivity.this, R.color.primary_700));
+                }
+            }
+        };
+        AppBarLayout appBar = (AppBarLayout) findViewById(R.id.postsAppBar);
+        assert appBar != null;
+        appBar.addOnOffsetChangedListener(mListener);
+
+*/
+
+
 
         Palette.from(bitmap).generate(new Palette.PaletteAsyncListener() {
             @Override
@@ -457,10 +480,15 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     collapseLayout.setExpandedTitleColor(swatchList.get(maxPosition).getTitleTextColor());
-                    collapseLayout.setContentScrimColor(swatchList.get(maxPosition).getRgb());
+                    collapseLayout.setContentScrimColor(palette.getDarkVibrantColor(ContextCompat.getColor(MainActivity.this, R.color.primary_500)));
+                    //postBackgroundColor = palette.getDarkVibrantColor(ContextCompat.getColor(MainActivity.this, R.color.primary_500));
+                    postBackgroundColor = ContextCompat.getColor(MainActivity.this, R.color.postBackground);
+                    //collapseLayout.setContentScrimColor(swatchList.get(maxPosition).getRgb());
+
                     collapseLayout.setTitle(mName);
 
-                    specialColor = swatchList.get(maxPosition).getRgb();
+                    //specialColor = swatchList.get(maxPosition).getRgb();
+                    specialColor = palette.getDarkVibrantColor(ContextCompat.getColor(MainActivity.this, R.color.primary_500));
                 }
             }
         });
@@ -501,12 +529,13 @@ public class MainActivity extends AppCompatActivity {
                         .setCancelable(false)
                         .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
-                                postsRecyclerView.smoothScrollToPosition(LIMIT);
-                                DatabaseReference newRef = adapterRoot.push();
-                                Log.d("fabAddKey: ", newRef.getKey());
-                                MountainPost mp = new MountainPost(postInput.getText().toString().trim(), currUser.getEmail(), newRef.getKey());
-                                newRef.setValue(mp);
-
+                                if (!postInput.getText().toString().trim().equals("")) {
+                                    DatabaseReference newRef = adapterRoot.push();
+                                    Log.d("fabAddKey: ", newRef.getKey());
+                                    MountainPost mp = new MountainPost(postInput.getText().toString().trim(), currUser.getEmail(), newRef.getKey());
+                                    newRef.setValue(mp);
+                                    postsRecyclerView.smoothScrollToPosition(LIMIT);
+                                }
                             }
                         })
                         .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {

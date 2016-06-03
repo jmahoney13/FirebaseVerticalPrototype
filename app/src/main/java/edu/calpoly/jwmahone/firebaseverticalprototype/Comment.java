@@ -4,14 +4,16 @@ public class Comment {
 
     private String comment;
     private String commentID;
+    private String commentAuthor;
 
     public Comment() {
 
     }
 
-    public Comment(String id, String comment) {
+    public Comment(String id, String comment, String author) {
         this.commentID = id;
         this.comment = comment;
+        this.commentAuthor = author;
     }
 
     public String getComment() {
@@ -21,4 +23,8 @@ public class Comment {
     public String getCommentID() {
         return this.commentID;
     }
+
+    public String getCommentAuthor() {
+        return this.commentAuthor;
+   }
 }

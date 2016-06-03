@@ -7,6 +7,11 @@
     <TextView android:id="@+id/mountainTextView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="25sp"/>
+        android:textSize="25sp"
+        android:text="Alpine Meadows"
+        android:gravity="center"
+        android:padding="15dp"
+        android:textStyle="italic"
+        android:layout_marginBottom="5dp"/>
 
 </LinearLayout>

@@ -1,8 +1,12 @@
 package edu.calpoly.jwmahone.firebaseverticalprototype;
 
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.TransitionDrawable;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -13,8 +17,6 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 
 
 public class MountainSelectionActivity extends AppCompatActivity {
@@ -27,6 +29,7 @@ public class MountainSelectionActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_mountain_selection);
+
 
         //DatabaseReference testRef = FirebaseDatabase.getInstance().getReference();
         //testRef.child("testing").push().setValue("test");
@@ -60,12 +63,23 @@ public class MountainSelectionActivity extends AppCompatActivity {
         this.mountainList = (ListView) findViewById(android.R.id.list);
         this.mountainList.setAdapter(new ArrayAdapter<>(this, R.layout.mountain_selection, R.id.mountainTextView, getResources().getStringArray(R.array.mountains)));
 
+
         this.mountainList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 String mountainName = (String)parent.getItemAtPosition(position);
                 Intent postScreenActivity = new Intent(MountainSelectionActivity.this, MainActivity.class);
                 postScreenActivity.putExtra("MOUNTAIN_NAME", mountainName);
+
+                // Animate the background color of clicked Item
+                ColorDrawable[] color = {
+                        new ColorDrawable(ContextCompat.getColor(MountainSelectionActivity.this, R.color.postBackground)),
+                        new ColorDrawable(ContextCompat.getColor(MountainSelectionActivity.this, R.color.animationColor))
+                };
+                TransitionDrawable trans = new TransitionDrawable(color);
+                view.setBackground(trans);
+                trans.startTransition(0); // duration 2 seconds
+
                 startActivity(postScreenActivity);
             }
         });

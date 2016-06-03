@@ -9,6 +9,8 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
@@ -48,18 +50,26 @@ public class LoginScreenActivity extends AppCompatActivity {
         loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                final String emailAddr = emailEditText.getText().toString();
-                String password = passwordEditText.getText().toString();
+                final String emailAddr = emailEditText.getText().toString().trim();
+                String password = passwordEditText.getText().toString().trim();
 
-                mAuth.signInWithEmailAndPassword(emailAddr, password).addOnCompleteListener(LoginScreenActivity.this, new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        Intent intent = new Intent(LoginScreenActivity.this, MountainSelectionActivity.class);
-                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                        startActivity(intent);
-                    }
-                });
+                if ((!emailAddr.equals("")) && (!password.equals(""))) {
+
+                    mAuth.signInWithEmailAndPassword(emailAddr, password).addOnCompleteListener(LoginScreenActivity.this, new OnCompleteListener<AuthResult>() {
+                        @Override
+                        public void onComplete(@NonNull Task<AuthResult> task) {
+                            if (task.isSuccessful()) {
+                                Intent intent = new Intent(LoginScreenActivity.this, MountainSelectionActivity.class);
+                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                startActivity(intent);
+                            }
+                            else {
+                                Toast.makeText(LoginScreenActivity.this, "Login Failed: Check email/password.", Toast.LENGTH_LONG).show();
+                            }
+                        }
+                    });
+                }
             }
         });
     }

@@ -2,15 +2,23 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:background="#E1F5FE"
+    android:elevation="1dp"
+    android:layout_margin="5dp">
 
     <TextView android:id="@+id/commentTV"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textSize="15sp"
-        android:padding="5dp"
-        android:layout_margin="5dp"
-        android:text="This is the test comment"
-        android:background="#E1F5FE"/>
+        android:padding="1dp"
+        android:text="This is the test comment"/>
+
+    <TextView android:id="@+id/authorCommentTextView"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:text="billybob101@gmail.com"
+        android:textStyle="italic"
+        android:padding="1dp"/>
 
 </LinearLayout>

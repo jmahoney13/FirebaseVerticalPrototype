@@ -1,5 +1,6 @@
 package edu.calpoly.jwmahone.firebaseverticalprototype;
 
+import android.content.Context;
 import android.content.Intent;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -9,13 +10,19 @@ import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 
 public class CommentsActivity extends AppCompatActivity {
@@ -26,6 +33,7 @@ public class CommentsActivity extends AppCompatActivity {
     private RecyclerView commentsRecyclerView;
     private EditText commentEditText;
     private Button addButton;
+    private MountainPost mp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,7 +52,6 @@ public class CommentsActivity extends AppCompatActivity {
 
         LinearLayoutManager lm = new LinearLayoutManager(this);
         lm.setOrientation(LinearLayoutManager.VERTICAL);
-        lm.setStackFromEnd(true);
 
         TextView lineTV = (TextView) findViewById(R.id.lineView);
         TextView authTV = (TextView) findViewById(R.id.authorView);
@@ -53,6 +60,9 @@ public class CommentsActivity extends AppCompatActivity {
         this.commentsRecyclerView.setHasFixedSize(false);
         this.commentsRecyclerView.setLayoutManager(lm);
         this.commentEditText = (EditText) findViewById(R.id.commentEditText);
+
+        this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+
         this.addButton = (Button) findViewById(R.id.addCommentButton);
 
         lineTV.setText(commentPost.getLine());
@@ -64,8 +74,8 @@ public class CommentsActivity extends AppCompatActivity {
         this.commentAdapter = new FirebaseRecyclerAdapter<Comment, CommentViewHolder>(Comment.class, R.layout.comment_view, CommentViewHolder.class, adapterRef) {
             @Override
             protected void populateViewHolder(CommentViewHolder commentViewHolder, Comment comment, int position) {
-                String commentStr = comment.getComment();
-                commentViewHolder.comment.setText(commentStr);
+                commentViewHolder.comment.setText(comment.getComment());
+                commentViewHolder.author.setText(comment.getCommentAuthor());
             }
         };
 
@@ -74,21 +84,39 @@ public class CommentsActivity extends AppCompatActivity {
         this.addButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String comment = commentEditText.getText().toString();
-                DatabaseReference pushcommentRef = adapterRef.push();
-                Comment currComment = new Comment(pushcommentRef.getKey(), comment);
-                pushcommentRef.setValue(currComment);
-                commentEditText.setText("");
+                if (!commentEditText.getText().toString().trim().equals("")) {
+                    DatabaseReference postRef = FirebaseDatabase.getInstance().getReference().child("mountain").child(mName).child("posts").child(commentPost.getID());
+                    postRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            mp = dataSnapshot.getValue(MountainPost.class);
+                            DatabaseReference pushcommentRef = adapterRef.push();
+                            Comment currComment = new Comment(pushcommentRef.getKey(), commentEditText.getText().toString(), mp.getAuthor());
+                            pushcommentRef.setValue(currComment);
+                            commentEditText.setText("");
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+
+                        }
+                    });
+                }
+
+                InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(commentEditText.getWindowToken(), 0);
             }
         });
     }
 
     public static class CommentViewHolder extends RecyclerView.ViewHolder {
         private TextView comment;
+        private TextView author;
 
         public CommentViewHolder(View itemView) {
             super(itemView);
             this.comment = (TextView) itemView.findViewById(R.id.commentTV);
+            this.author = (TextView) itemView.findViewById(R.id.authorCommentTextView);
         }
     }
 

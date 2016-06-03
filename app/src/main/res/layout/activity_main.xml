@@ -37,7 +37,7 @@
                 android:layout_height="?attr/actionBarSize"
                 android:layout_width="match_parent"
                 app:layout_collapseMode="pin"
-                app:popupTheme="@style/ThemeOverlay.AppCompat.Light"/>
+                app:popupTheme="@style/Theme.AppCompat.Light"/>
 
         </android.support.design.widget.CollapsingToolbarLayout>
     </android.support.design.widget.AppBarLayout>
@@ -57,7 +57,7 @@
         android:src="@drawable/ic_fab"
         app:layout_anchor="@+id/postsAppBar"
         app:layout_anchorGravity="bottom|right|end"
-        app:elevation="12dp"/>
+        android:elevation="12dp"/>
 
 </android.support.design.widget.CoordinatorLayout>
 
