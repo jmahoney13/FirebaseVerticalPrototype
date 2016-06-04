@@ -252,11 +252,9 @@ public class MainActivity extends AppCompatActivity {
                 Log.d("pressed: ", "pressed!!!");
                 if (checkedId == R.id.likeRadioButton) {
                     likeTransaction();
-                    //likeButton.setEnabled(false); //TODO
                 }
                 else if (checkedId == R.id.dislikeRadioButton) {
                     dislikeTransaction();
-                    //dislikeButton.setEnabled(false); //TODO
                 }
             }
         }
@@ -434,25 +432,6 @@ public class MainActivity extends AppCompatActivity {
             default:
                 break;
         }
-/*
-        AppBarLayout.OnOffsetChangedListener mListener;
-        mListener = new AppBarLayout.OnOffsetChangedListener() {
-            @Override
-            public void onOffsetChanged(AppBarLayout appBarLayout, int verticalOffset) {
-                if(collapseLayout.getHeight() + verticalOffset >= 2 * ViewCompat.getMinimumHeight(collapseLayout)) {
-                    getWindow().setStatusBarColor(ContextCompat.getColor(MainActivity.this, android.R.color.transparent));
-                }
-                else {
-                    getWindow().setStatusBarColor(ContextCompat.getColor(MainActivity.this, R.color.primary_700));
-                }
-            }
-        };
-        AppBarLayout appBar = (AppBarLayout) findViewById(R.id.postsAppBar);
-        assert appBar != null;
-        appBar.addOnOffsetChangedListener(mListener);
-
-*/
-
 
 
         Palette.from(bitmap).generate(new Palette.PaletteAsyncListener() {
